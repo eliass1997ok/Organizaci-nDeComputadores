@@ -238,7 +238,7 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 		char* token;
 		char instruction[64];
 
-		strcpy(instruction, node->line);
+		strcpy(instruction, strtok(node->line, "\n"));
 		token = strtok(node->line, " ");
 
 		if (strcmp(token, "addi") == 0){
