@@ -1,0 +1,6 @@
+Jump end
+subi $t2, $zero, 2
+subi $t3, $zero, 3
+sub $t1, $t2, $t3
+sub $t3, $t2, $t1
+end:

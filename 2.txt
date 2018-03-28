@@ -1,0 +1,9 @@
+Regdst x
+Jump 0
+Branch x
+Memread x
+Memtoreg x
+Aluop x
+Memwrite x
+Alusrc x
+Regwrite x
