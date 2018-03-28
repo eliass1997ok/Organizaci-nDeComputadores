@@ -175,13 +175,98 @@ RestrictionsList* createRestrictions(ListOfLines* lines){
 	return restrictions;
 }
 
-// void showTrace(ListOfLines* program, RestrictionsList* restrictions){
-// 	int* registers;
-// 	registers = (int*)calloc(32, sizeof(int));
+int searchRegister(char* registerString){
+	if (strcmp(registerString, "$zero") == 0) return 0;
+	if (strcmp(registerString, "$at") == 0) return 1;
+	if (strcmp(registerString, "$v0") == 0) return 2;
+	if (strcmp(registerString, "$v1") == 0) return 3;
+	if (strcmp(registerString, "$a0") == 0) return 4;
+	if (strcmp(registerString, "$a1") == 0) return 5;
+	if (strcmp(registerString, "$a2") == 0) return 6;
+	if (strcmp(registerString, "$a3") == 0) return 7;
+	if (strcmp(registerString, "$t0") == 0) return 8;
+	if (strcmp(registerString, "$t1") == 0) return 9;
+	if (strcmp(registerString, "$t2") == 0) return 10;
+	if (strcmp(registerString, "$t3") == 0) return 11;
+	if (strcmp(registerString, "$t4") == 0) return 12;
+	if (strcmp(registerString, "$t5") == 0) return 13;
+	if (strcmp(registerString, "$t6") == 0) return 14;
+	if (strcmp(registerString, "$t7") == 0) return 15;
+	if (strcmp(registerString, "$s0") == 0) return 16;
+	if (strcmp(registerString, "$s1") == 0) return 17;
+	if (strcmp(registerString, "$s2") == 0) return 18;
+	if (strcmp(registerString, "$s3") == 0) return 19;
+	if (strcmp(registerString, "$s4") == 0) return 20;
+	if (strcmp(registerString, "$s5") == 0) return 21;
+	if (strcmp(registerString, "$s6") == 0) return 22;
+	if (strcmp(registerString, "$s7") == 0) return 23;
+	if (strcmp(registerString, "$t8") == 0) return 24;
+	if (strcmp(registerString, "$t9") == 0) return 25;
+	if (strcmp(registerString, "$k0") == 0) return 26;
+	if (strcmp(registerString, "$k1") == 0) return 27;
+	if (strcmp(registerString, "$gp") == 0) return 28;
+	if (strcmp(registerString, "$sp") == 0) return 29;
+	if (strcmp(registerString, "$fp") == 0) return 30;
+	if (strcmp(registerString, "$ra") == 0) return 31;
+	return -1;
+}
 
-	
+int searchError(RestrictionsList* restrictions, char* instruction){
+	RestrictionsNode* node;
+	node = restrictions->first;
 
-// }
+	while (node){
+		if (strcmp(node->instruction, instruction) == 0)
+			if (node->state == 'x' || node->state == 'X') return 0;
+		node = node->next;
+	}
+
+	return 1;
+}
+
+void showTrace(ListOfLines* program, RestrictionsList* restrictions){
+	LinesNode* node;
+	LinesNode* aux;
+	int* registers;
+	registers = (int*)calloc(32, sizeof(int));
+
+	printf("   INSTRUCTIONS   |$0 |$at|$v0|$v1|$a0|$a1|$a2|$a3|$t0|$t1|$t2|$t3|$t4|$t5|$t6|$t7|$s0|$s1|$s2|$s3|$s4|$s5|$s6|$s7|$t8|$t9|$k0|$k1|$gp|$sp|$fp|$ra|\n");
+
+	node = program->first;
+
+	while (node){
+		char* token;
+		char instruction[64];
+
+		strcpy(instruction, node->line);
+		token = strtok(node->line, " ");
+
+		if (strcmp(token, "addi") == 0){
+			printf("%s ", instruction);
+
+			//if (verificar si no hay error para la suma)
+				int saveTheSum, firstOperand, secondOperand;
+				token = strtok(NULL, ", ");
+				saveTheSum = searchRegister(token);
+
+				token = strtok(NULL, ", ");
+				firstOperand = registers[searchRegister(token)];
+				
+				token = strtok(NULL, " ");
+				secondOperand = atoi(token);
+				
+
+				registers[saveTheSum] = firstOperand + secondOperand;
+			//end if
+		}
+		for(int i=0; i<32; i++) printf(" | %d", registers[i]);
+		printf("\n");
+		node = node->next;
+	}
+
+	free(registers);
+
+}
 
 int main(){
 	char firstFile[100];
@@ -198,13 +283,15 @@ int main(){
 	linesFirstFile = readFile(firstFile);
 	linesSecondFile = readFile(secondFile);
 
-	// showList(linesFirstFile);
+	 showList(linesFirstFile);
 	// showList(linesSecondFile);
 
 	RestrictionsList* restrictions;
 	restrictions = createRestrictions(linesSecondFile);
 
-	showRestrictions(restrictions);
+	//showRestrictions(restrictions);
+
+	showTrace(linesFirstFile, restrictions);
 
 	free(linesSecondFile->first);
 	free(linesFirstFile->first);
