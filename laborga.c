@@ -2,6 +2,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct restrictionsNode{
+	char* instruction;
+	char state;
+	int arguments;
+	struct restrictionsNode* next;
+}RestrictionsNode;
+
+typedef struct restrictionsList{
+	RestrictionsNode* first;
+	RestrictionsNode* last;
+	int length;
+}RestrictionsList;
+
 typedef struct linesNode{
 	char* line;
 	struct linesNode* next;
@@ -21,7 +34,7 @@ void appendLine(ListOfLines* lines, char* line){
 
 	strcpy(node->line, line);
 
-	if(lines->length == 0){
+	if (lines->length == 0){
 		lines->first = node;
 		lines->last = node;
 	}
@@ -34,13 +47,46 @@ void appendLine(ListOfLines* lines, char* line){
 
 }
 
+void appendRestriction(RestrictionsList* list, char* instruction, char state, int arguments){
+	RestrictionsNode* node;
+	node = (RestrictionsNode*)calloc(1, sizeof(RestrictionsNode));
+
+	node->instruction = (char*)calloc(32, sizeof(char));
+
+	strcpy(node->instruction, instruction);
+	node->state = state;
+	node->arguments = arguments;
+
+	if (list->length == 0){
+		list->first = node;
+		list->last = node;
+	}
+	else{
+		list->last->next = node;
+		list->last = node;
+	}
+
+	list->length++;
+}
+
 void freeList(LinesNode* node){
 	LinesNode* aux;
 
-	while(aux){
+	while (aux){
 		aux = node;
 		node = node->next;
 		free(aux->line);
+		free(aux);
+	}
+}
+
+void freeRestrictions(RestrictionsNode* node){
+	RestrictionsNode* aux;
+
+	while (aux){
+		aux = node;
+		node = node->next;
+		free(aux->instruction);
 		free(aux);
 	}
 }
@@ -73,12 +119,69 @@ void showList(ListOfLines* list){
 
 	aux = list->first;
 
-	while(aux){
+	while (aux){
 		printf("%s\n", aux->line);
 		aux = aux->next;
 	}
 	printf("\n");
 }
+
+void showRestrictions(RestrictionsList* list){
+	RestrictionsNode* aux;
+	aux = list->first;
+
+	while (aux){
+		printf("Instruction: %s\nState: %c\nArguments: %d\n", aux->instruction, aux->state, aux->arguments);
+		aux = aux->next;
+	}
+}
+
+RestrictionsList* createRestrictions(ListOfLines* lines){
+	LinesNode* aux;
+	aux = lines->first;
+
+	RestrictionsList* restrictions;
+	restrictions = (RestrictionsList*)calloc(1, sizeof(RestrictionsList));
+
+	while (aux){
+		RestrictionsNode* nodeOfRestrictions;
+		nodeOfRestrictions = (RestrictionsNode*)calloc(1, sizeof(RestrictionsNode));
+
+		char* token;
+		char instruction[32];
+		int arguments;
+
+		token = strtok(aux->line, " ");
+		strcpy(instruction, token);
+
+		if (strcmp(token, "addi") == 0 || strcmp(token, "subi") == 0 || strcmp(token, "beq") == 0 || 
+			strcmp(token, "add") == 0 || strcmp(token, "sub") == 0 || strcmp(token, "mul") == 0 ||
+			strcmp(token, "div") == 0) 
+			arguments = 3;
+		
+		if (strcmp(token, "lw") == 0 || strcmp(token, "sw") == 0)
+			arguments = 2;
+
+		if (strcmp(token, "jump") == 0 || strcmp(token, "j") == 0 || strcmp(token, "Jump") == 0)
+			arguments = 1;
+
+		token = strtok(NULL, " ");
+
+		appendRestriction(restrictions, instruction, token[0], arguments);
+
+		aux = aux->next;
+	}
+
+	return restrictions;
+}
+
+// void showTrace(ListOfLines* program, RestrictionsList* restrictions){
+// 	int* registers;
+// 	registers = (int*)calloc(32, sizeof(int));
+
+	
+
+// }
 
 int main(){
 	char firstFile[100];
@@ -95,8 +198,13 @@ int main(){
 	linesFirstFile = readFile(firstFile);
 	linesSecondFile = readFile(secondFile);
 
-	showList(linesFirstFile);
-	showList(linesSecondFile);
+	// showList(linesFirstFile);
+	// showList(linesSecondFile);
+
+	RestrictionsList* restrictions;
+	restrictions = createRestrictions(linesSecondFile);
+
+	showRestrictions(restrictions);
 
 	free(linesSecondFile->first);
 	free(linesFirstFile->first);
