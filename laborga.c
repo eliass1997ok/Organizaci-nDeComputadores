@@ -258,6 +258,24 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 				registers[saveTheSum] = firstOperand + secondOperand;
 			//end if
 		}
+		else if (strcmp(token, "subi") == 0){
+			printf("%s ", instruction);
+
+			//if (verificar si no hay error en la resta)
+				int saveTheSub, firstOperand, secondOperand;
+				token = strtok(NULL, ", ");
+				saveTheSub = searchRegister(token);	
+				
+				token = strtok(NULL, ", ");
+				firstOperand = registers[searchRegister(token)];
+
+				token = strtok(NULL, " ");
+				secondOperand = atoi(token);
+
+				registers[saveTheSub] = firstOperand - secondOperand;
+			//end if
+		}
+		
 		for(int i=0; i<32; i++) printf(" | %d", registers[i]);
 		printf("\n");
 		node = node->next;
