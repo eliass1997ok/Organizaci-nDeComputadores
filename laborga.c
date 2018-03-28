@@ -230,7 +230,7 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 	int* registers;
 	registers = (int*)calloc(32, sizeof(int));
 
-	printf("   INSTRUCTIONS   |$0 |$at|$v0|$v1|$a0|$a1|$a2|$a3|$t0|$t1|$t2|$t3|$t4|$t5|$t6|$t7|$s0|$s1|$s2|$s3|$s4|$s5|$s6|$s7|$t8|$t9|$k0|$k1|$gp|$sp|$fp|$ra|\n");
+	printf("\n   INSTRUCTIONS   |$0 |$at|$v0|$v1|$a0|$a1|$a2|$a3|$t0|$t1|$t2|$t3|$t4|$t5|$t6|$t7|$s0|$s1|$s2|$s3|$s4|$s5|$s6|$s7|$t8|$t9|$k0|$k1|$gp|$sp|$fp|$ra|\n");
 
 	node = program->first;
 
@@ -255,7 +255,6 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 				token = strtok(NULL, " ");
 				secondOperand = atoi(token);
 				
-
 				registers[saveTheSum] = firstOperand + secondOperand;
 			//end if
 		}
@@ -283,7 +282,7 @@ int main(){
 	linesFirstFile = readFile(firstFile);
 	linesSecondFile = readFile(secondFile);
 
-	 showList(linesFirstFile);
+	// showList(linesFirstFile);
 	// showList(linesSecondFile);
 
 	RestrictionsList* restrictions;
