@@ -230,7 +230,7 @@ int searchError(RestrictionsList* restrictions, char* instruction){
 	node = restrictions->first;
 
 	while (node){
-		if (strcmp(node->instruction, instruction) == 0)
+		if (strcmp(node->instruction, instruction) == 0) 
 			if (node->state == 'x' || node->state == 'X') return 0;
 		node = node->next;
 	}
@@ -303,7 +303,7 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 			jump = 1;
 			printf("%s", instruction);
 
-			//if (verificar si no hay error en la función jump)
+			if (searchError(restrictions, "Branch") == 0){
 				int firstRegister, secondRegister;
 				token = strtok(NULL, ", ");
 				firstRegister = registers[searchRegister(token)];
@@ -316,9 +316,97 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 					token = strtok(NULL, " ");
 					node = searchLabel(program, token);
 				}
-			//end if
+			}
 
 		}
+		else if (strcmp(token, "jump") == 0 || strcmp(token, "j") == 0 || strcmp(token, "Jump") == 0){
+			validateInstruction = 1;
+			jump = 1;
+			printf("%s", instruction);
+
+			if (searchError(restrictions, "Jump") == 0){
+				jump = 2;
+				token = strtok(NULL, " ");
+				node = searchLabel(program, token);
+			}
+		}
+		else if (strcmp(token, "add") == 0){
+			validateInstruction = 1;
+			jump = 3;
+			printf("%s", instruction);
+
+			//if (verificar si no hay error en la función add)
+				int saveTheSum, firstOperand, secondOperand;
+				token = strtok(NULL, ", ");
+				saveTheSum = searchRegister(token);
+
+				token = strtok(NULL, ", ");
+				firstOperand = registers[searchRegister(token)];
+
+				token = strtok(NULL, " ");
+				secondOperand = registers[searchRegister(token)];
+
+				registers[saveTheSum] = firstOperand + secondOperand;
+			//end if
+		}
+		else if (strcmp(token, "sub") == 0){
+			validateInstruction = 1;
+			jump = 3;
+			printf("%s ", instruction);
+
+			//if (verificar si no hay error en la resta)
+				int saveTheSub, firstOperand, secondOperand;
+				token = strtok(NULL, ", ");
+				saveTheSub = searchRegister(token);	
+				
+				token = strtok(NULL, ", ");
+				firstOperand = registers[searchRegister(token)];
+
+				token = strtok(NULL, " ");
+				secondOperand = registers[searchRegister(token)];
+
+				registers[saveTheSub] = firstOperand - secondOperand;
+			//end if
+		}
+		else if (strcmp(token, "mul") == 0){
+			validateInstruction = 1;
+			jump = 3;
+			printf("%s", instruction);
+
+			//if (verificar si no hay error en la multiplicación)
+				int saveTheMul, firstOperand, secondOperand;
+				token = strtok(NULL, ", ");
+				saveTheMul = searchRegister(token);
+
+				token = strtok(NULL, ", ");
+				firstOperand = registers[searchRegister(token)];
+
+				token = strtok(NULL, " ");
+				secondOperand = registers[searchRegister(token)];
+
+				registers[saveTheMul] = firstOperand * secondOperand;
+			//end if
+		}
+		else if (strcmp(token, "div") == 0){
+			validateInstruction = 1;
+			jump = 3;
+			printf("%s", instruction);
+
+			//if (verificar si no hay error en la multiplicación)
+				int saveTheDiv, firstOperand, secondOperand;
+				token = strtok(NULL, ", ");
+				saveTheDiv = searchRegister(token);
+
+				token = strtok(NULL, ", ");
+				firstOperand = registers[searchRegister(token)];
+
+				token = strtok(NULL, " ");
+				secondOperand = registers[searchRegister(token)];
+
+				registers[saveTheDiv] = firstOperand / secondOperand;
+			//end if
+		}
+
 		if (jump == 3){
 			printf(" ");
 			node = node->next;

@@ -1,5 +1,5 @@
 Regdst x
-Jump 0
+Jump x
 Branch x
 Memread x
 Memtoreg x
