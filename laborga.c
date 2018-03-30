@@ -175,6 +175,20 @@ RestrictionsList* createRestrictions(ListOfLines* lines){
 	return restrictions;
 }
 
+LinesNode* searchLabel(ListOfLines* list, char* label){
+	LinesNode* node;
+	char* token;
+
+	node = list->first;
+
+	while (node){
+		token = strtok(node->line, ":");
+		if (strcmp(token, label) == 0) return node->next;
+		node = node->next;
+	}
+
+	return node;
+}
 int searchRegister(char* registerString){
 	if (strcmp(registerString, "$zero") == 0) return 0;
 	if (strcmp(registerString, "$at") == 0) return 1;
@@ -228,20 +242,27 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 	LinesNode* node;
 	LinesNode* aux;
 	int* registers;
+	int jump;
+	int validateInstruction;
+
 	registers = (int*)calloc(32, sizeof(int));
 
-	printf("\n   INSTRUCTIONS   |$0 |$at|$v0|$v1|$a0|$a1|$a2|$a3|$t0|$t1|$t2|$t3|$t4|$t5|$t6|$t7|$s0|$s1|$s2|$s3|$s4|$s5|$s6|$s7|$t8|$t9|$k0|$k1|$gp|$sp|$fp|$ra|\n");
+	printf("\n   INSTRUCTIONS    |$0 |$at|$v0|$v1|$a0|$a1|$a2|$a3|$t0|$t1|$t2|$t3|$t4|$t5|$t6|$t7|$s0|$s1|$s2|$s3|$s4|$s5|$s6|$s7|$t8|$t9|$k0|$k1|$gp|$sp|$fp|$ra|\n");
 
 	node = program->first;
 
 	while (node){
 		char* token;
 		char instruction[64];
+		validateInstruction = 0;
+		jump = 0;
 
 		strcpy(instruction, strtok(node->line, "\n"));
 		token = strtok(node->line, " ");
 
 		if (strcmp(token, "addi") == 0){
+			validateInstruction = 1;
+			jump = 3;
 			printf("%s ", instruction);
 
 			//if (verificar si no hay error para la suma)
@@ -259,6 +280,8 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 			//end if
 		}
 		else if (strcmp(token, "subi") == 0){
+			validateInstruction = 1;
+			jump = 3;
 			printf("%s ", instruction);
 
 			//if (verificar si no hay error en la resta)
@@ -275,10 +298,40 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 				registers[saveTheSub] = firstOperand - secondOperand;
 			//end if
 		}
-		
-		for(int i=0; i<32; i++) printf(" | %d", registers[i]);
-		printf("\n");
-		node = node->next;
+		else if (strcmp(token, "beq") == 0){
+			validateInstruction = 1;
+			jump = 1;
+			printf("%s", instruction);
+
+			//if (verificar si no hay error en la función jump)
+				int firstRegister, secondRegister;
+				token = strtok(NULL, ", ");
+				firstRegister = registers[searchRegister(token)];
+
+				token = strtok(NULL, ", ");
+				secondRegister = registers[searchRegister(token)];
+
+				if (firstRegister == secondRegister){
+					jump = 2;
+					token = strtok(NULL, " ");
+					node = searchLabel(program, token);
+				}
+			//end if
+
+		}
+		if (jump == 3){
+			printf(" ");
+			node = node->next;
+		}
+		else if (jump == 0 || jump == 1){
+			node = node->next;
+		}
+
+		if (validateInstruction != 0){ 
+			for(int i=0; i<32; i++) printf(" | %d", registers[i]);
+			printf("\n");
+		}
+
 	}
 
 	free(registers);
