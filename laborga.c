@@ -241,11 +241,13 @@ int searchError(RestrictionsList* restrictions, char* instruction){
 void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 	LinesNode* node;
 	LinesNode* aux;
-	int* registers;
+	int** registers;
 	int jump;
 	int validateInstruction;
 
-	registers = (int*)calloc(32, sizeof(int));
+	registers = (int**)calloc(32, sizeof(int*));
+
+	for(int i=0; i<32; i++) registers[i] = (int*)calloc(100, sizeof(int));
 
 	printf("\n   INSTRUCTIONS    |$0 |$at|$v0|$v1|$a0|$a1|$a2|$a3|$t0|$t1|$t2|$t3|$t4|$t5|$t6|$t7|$s0|$s1|$s2|$s3|$s4|$s5|$s6|$s7|$t8|$t9|$k0|$k1|$gp|$sp|$fp|$ra|\n");
 
@@ -271,12 +273,12 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 				saveTheSum = searchRegister(token);
 
 				token = strtok(NULL, ", ");
-				firstOperand = registers[searchRegister(token)];
+				firstOperand = registers[searchRegister(token)][0];
 				
 				token = strtok(NULL, " ");
 				secondOperand = atoi(token);
 				
-				registers[saveTheSum] = firstOperand + secondOperand;
+				registers[saveTheSum][0] = firstOperand + secondOperand;
 			//end if
 		}
 		else if (strcmp(token, "subi") == 0){
@@ -290,12 +292,12 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 				saveTheSub = searchRegister(token);	
 				
 				token = strtok(NULL, ", ");
-				firstOperand = registers[searchRegister(token)];
+				firstOperand = registers[searchRegister(token)][0];
 
 				token = strtok(NULL, " ");
 				secondOperand = atoi(token);
 
-				registers[saveTheSub] = firstOperand - secondOperand;
+				registers[saveTheSub][0] = firstOperand - secondOperand;
 			//end if
 		}
 		else if (strcmp(token, "beq") == 0){
@@ -306,10 +308,10 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 			if (searchError(restrictions, "Branch") == 0){
 				int firstRegister, secondRegister;
 				token = strtok(NULL, ", ");
-				firstRegister = registers[searchRegister(token)];
+				firstRegister = registers[searchRegister(token)][0];
 
 				token = strtok(NULL, ", ");
-				secondRegister = registers[searchRegister(token)];
+				secondRegister = registers[searchRegister(token)][0];
 
 				if (firstRegister == secondRegister){
 					jump = 2;
@@ -322,7 +324,7 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 		else if (strcmp(token, "jump") == 0 || strcmp(token, "j") == 0 || strcmp(token, "Jump") == 0){
 			validateInstruction = 1;
 			jump = 1;
-			printf("%s", instruction);
+			printf("%s          ", instruction);
 
 			if (searchError(restrictions, "Jump") == 0){
 				jump = 2;
@@ -341,12 +343,12 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 				saveTheSum = searchRegister(token);
 
 				token = strtok(NULL, ", ");
-				firstOperand = registers[searchRegister(token)];
+				firstOperand = registers[searchRegister(token)][0];
 
 				token = strtok(NULL, " ");
-				secondOperand = registers[searchRegister(token)];
+				secondOperand = registers[searchRegister(token)][0];
 
-				registers[saveTheSum] = firstOperand + secondOperand;
+				registers[saveTheSum][0] = firstOperand + secondOperand;
 			//end if
 		}
 		else if (strcmp(token, "sub") == 0){
@@ -360,12 +362,12 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 				saveTheSub = searchRegister(token);	
 				
 				token = strtok(NULL, ", ");
-				firstOperand = registers[searchRegister(token)];
+				firstOperand = registers[searchRegister(token)][0];
 
 				token = strtok(NULL, " ");
-				secondOperand = registers[searchRegister(token)];
+				secondOperand = registers[searchRegister(token)][0];
 
-				registers[saveTheSub] = firstOperand - secondOperand;
+				registers[saveTheSub][0] = firstOperand - secondOperand;
 			//end if
 		}
 		else if (strcmp(token, "mul") == 0){
@@ -379,12 +381,12 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 				saveTheMul = searchRegister(token);
 
 				token = strtok(NULL, ", ");
-				firstOperand = registers[searchRegister(token)];
+				firstOperand = registers[searchRegister(token)][0];
 
 				token = strtok(NULL, " ");
-				secondOperand = registers[searchRegister(token)];
+				secondOperand = registers[searchRegister(token)][0];
 
-				registers[saveTheMul] = firstOperand * secondOperand;
+				registers[saveTheMul][0] = firstOperand * secondOperand;
 			//end if
 		}
 		else if (strcmp(token, "div") == 0){
@@ -398,12 +400,50 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 				saveTheDiv = searchRegister(token);
 
 				token = strtok(NULL, ", ");
-				firstOperand = registers[searchRegister(token)];
+				firstOperand = registers[searchRegister(token)][0];
 
 				token = strtok(NULL, " ");
-				secondOperand = registers[searchRegister(token)];
+				secondOperand = registers[searchRegister(token)][0];
 
-				registers[saveTheDiv] = firstOperand / secondOperand;
+				registers[saveTheDiv][0] = firstOperand / secondOperand;
+			//end if
+		}
+		else if (strcmp(token, "lw") == 0){
+			validateInstruction = 1;
+			jump = 3;
+			printf("%s   ", instruction);
+
+			//if (verificar si funciona lw)
+				int saveTheValue, position, value;
+				token = strtok(NULL, ", ");
+				saveTheValue = searchRegister(token);
+
+				token = strtok(NULL, "(");
+				position = atoi(token) / 4;
+
+				token = strtok(NULL, ")");
+				value = registers[searchRegister(token)][position];
+
+				registers[saveTheValue][0] = value;
+			//end if
+		}
+		else if (strcmp(token, "sw") == 0){
+			validateInstruction = 1;
+			jump = 3;
+			printf("%s   ", instruction);
+
+			//if (verificar si funciona sw)
+				int valueToSet, position, registerToSet;
+				token = strtok(NULL, ", ");
+				valueToSet = registers[searchRegister(token)][0];
+
+				token = strtok(NULL, "(");
+				position = atoi(token) / 4;
+
+				token = strtok(NULL, ")");
+				registerToSet = searchRegister(token);
+
+				registers[registerToSet][position] = valueToSet;
 			//end if
 		}
 
@@ -416,12 +456,12 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 		}
 
 		if (validateInstruction != 0){ 
-			for(int i=0; i<32; i++) printf(" | %d", registers[i]);
+			for(int i=0; i<32; i++) printf(" | %d", registers[i][0]);
 			printf("\n");
 		}
 
 	}
-
+	for(int i=0; i<32; i++) free(registers[i]);
 	free(registers);
 
 }
