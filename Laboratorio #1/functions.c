@@ -1,30 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-typedef struct restrictionsNode{
-	char* instruction;
-	char state;
-	int arguments;
-	struct restrictionsNode* next;
-}RestrictionsNode;
-
-typedef struct restrictionsList{
-	RestrictionsNode* first;
-	RestrictionsNode* last;
-	int length;
-}RestrictionsList;
-
-typedef struct linesNode{
-	char* line;
-	struct linesNode* next;
-}LinesNode;
-
-typedef struct listOfLines{
-	LinesNode* first;
-	LinesNode* last;
-	int length;
-}ListOfLines;
+#include "functions.h"
 
 void appendLine(ListOfLines* lines, char* line){
 	LinesNode* node;
@@ -72,7 +46,7 @@ void appendRestriction(RestrictionsList* list, char* instruction, char state, in
 void freeList(LinesNode* node){
 	LinesNode* aux;
 
-	while (aux){
+	while (node){
 		aux = node;
 		node = node->next;
 		free(aux->line);
@@ -83,7 +57,7 @@ void freeList(LinesNode* node){
 void freeRestrictions(RestrictionsNode* node){
 	RestrictionsNode* aux;
 
-	while (aux){
+	while (node){
 		aux = node;
 		node = node->next;
 		free(aux->instruction);
@@ -95,7 +69,7 @@ ListOfLines* readFile(char* nameOfFile){
 	FILE* f = fopen(nameOfFile, "r");
 
 	if (! f){
-		printf("The file %s doesn't exists.\n", nameOfFile);
+		printf("El archivo %s no existe.\nSaliendo...", nameOfFile);
 		exit(1);	
 	} 
 
@@ -238,18 +212,38 @@ int searchError(RestrictionsList* restrictions, char* instruction){
 	return 1;
 }
 
-void showTrace(ListOfLines* program, RestrictionsList* restrictions){
+void showTrace(ListOfLines* program, RestrictionsList* restrictions, char* firstOutputFile, char* secondOutputFile){
 	LinesNode* node;
-	LinesNode* aux;
-	int** registers;
+	int** memory;
+	int* registers;
 	int jump;
 	int validateInstruction;
 
-	registers = (int**)calloc(32, sizeof(int*));
+	FILE* f1;
+	FILE* f2;
+	f1 = fopen(firstOutputFile, "w");
+	if (! f1){
+		printf("Error generando el archivo %s\nSaliendo...", firstOutputFile);
+		freeList(program->first);
+		freeRestrictions(restrictions->first);
+		exit(1);
+	}
 
-	for(int i=0; i<32; i++) registers[i] = (int*)calloc(100, sizeof(int));
+	f2 = fopen(secondOutputFile, "w");
+	if (! f2){
+		printf("Error generando el archivo %s\nSaliendo...", secondOutputFile);
+		freeList(program->first);
+		freeRestrictions(restrictions->first);
+		exit(1);
+	}
 
-	printf("\n   INSTRUCTIONS    |$0 |$at|$v0|$v1|$a0|$a1|$a2|$a3|$t0|$t1|$t2|$t3|$t4|$t5|$t6|$t7|$s0|$s1|$s2|$s3|$s4|$s5|$s6|$s7|$t8|$t9|$k0|$k1|$gp|$sp|$fp|$ra|\n");
+	registers = (int*)calloc(32, sizeof(int));
+	memory = (int**)calloc(32, sizeof(int*));
+
+	for(int i=0; i<32; i++) memory[i] = (int*)calloc(100, sizeof(int));
+
+
+	fprintf(f2, "\n   INSTRUCTIONS    |$0 |$at|$v0|$v1|$a0|$a1|$a2|$a3|$t0|$t1|$t2|$t3|$t4|$t5|$t6|$t7|$s0|$s1|$s2|$s3|$s4|$s5|$s6|$s7|$t8|$t9|$k0|$k1|$gp|$sp|$fp|$ra");
 
 	node = program->first;
 
@@ -265,7 +259,8 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 		if (strcmp(token, "addi") == 0){
 			validateInstruction = 1;
 			jump = 3;
-			printf("%s ", instruction);
+			fprintf(f1, "%s\n", instruction);
+			fprintf(f2, "\n%s ", instruction);
 
 			//if (verificar si no hay error para la suma)
 				int saveTheSum, firstOperand, secondOperand;
@@ -273,18 +268,19 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 				saveTheSum = searchRegister(token);
 
 				token = strtok(NULL, ", ");
-				firstOperand = registers[searchRegister(token)][0];
+				firstOperand = registers[searchRegister(token)];
 				
 				token = strtok(NULL, " ");
 				secondOperand = atoi(token);
 				
-				registers[saveTheSum][0] = firstOperand + secondOperand;
+				registers[saveTheSum] = firstOperand + secondOperand;
 			//end if
 		}
 		else if (strcmp(token, "subi") == 0){
 			validateInstruction = 1;
 			jump = 3;
-			printf("%s ", instruction);
+			fprintf(f1, "%s\n", instruction);
+			fprintf(f2, "\n%s ", instruction);
 
 			//if (verificar si no hay error en la resta)
 				int saveTheSub, firstOperand, secondOperand;
@@ -292,26 +288,27 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 				saveTheSub = searchRegister(token);	
 				
 				token = strtok(NULL, ", ");
-				firstOperand = registers[searchRegister(token)][0];
+				firstOperand = registers[searchRegister(token)];
 
 				token = strtok(NULL, " ");
 				secondOperand = atoi(token);
 
-				registers[saveTheSub][0] = firstOperand - secondOperand;
+				registers[saveTheSub] = firstOperand - secondOperand;
 			//end if
 		}
 		else if (strcmp(token, "beq") == 0){
 			validateInstruction = 1;
 			jump = 1;
-			printf("%s", instruction);
+			fprintf(f1, "%s\n", instruction);
+			fprintf(f2, "\n%s", instruction);
 
 			if (searchError(restrictions, "Branch") == 0){
 				int firstRegister, secondRegister;
 				token = strtok(NULL, ", ");
-				firstRegister = registers[searchRegister(token)][0];
+				firstRegister = registers[searchRegister(token)];
 
 				token = strtok(NULL, ", ");
-				secondRegister = registers[searchRegister(token)][0];
+				secondRegister = registers[searchRegister(token)];
 
 				if (firstRegister == secondRegister){
 					jump = 2;
@@ -324,7 +321,8 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 		else if (strcmp(token, "jump") == 0 || strcmp(token, "j") == 0 || strcmp(token, "Jump") == 0){
 			validateInstruction = 1;
 			jump = 1;
-			printf("%s          ", instruction);
+			fprintf(f1, "%s          \n", instruction);
+			fprintf(f2, "\n%s          ", instruction);
 
 			if (searchError(restrictions, "Jump") == 0){
 				jump = 2;
@@ -335,64 +333,67 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 		else if (strcmp(token, "add") == 0){
 			validateInstruction = 1;
 			jump = 3;
-			printf("%s", instruction);
-
+			fprintf(f1, "%s\n", instruction);
+			fprintf(f2, "\n%s", instruction);
+			
 			//if (verificar si no hay error en la función add)
 				int saveTheSum, firstOperand, secondOperand;
 				token = strtok(NULL, ", ");
 				saveTheSum = searchRegister(token);
 
 				token = strtok(NULL, ", ");
-				firstOperand = registers[searchRegister(token)][0];
+				firstOperand = registers[searchRegister(token)];
 
 				token = strtok(NULL, " ");
-				secondOperand = registers[searchRegister(token)][0];
+				secondOperand = registers[searchRegister(token)];
 
-				registers[saveTheSum][0] = firstOperand + secondOperand;
+				registers[saveTheSum] = firstOperand + secondOperand;
 			//end if
 		}
 		else if (strcmp(token, "sub") == 0){
 			validateInstruction = 1;
 			jump = 3;
-			printf("%s ", instruction);
-
+			fprintf(f1, "%s\n", instruction);
+			fprintf(f2, "\n%s ", instruction);
 			//if (verificar si no hay error en la resta)
 				int saveTheSub, firstOperand, secondOperand;
 				token = strtok(NULL, ", ");
 				saveTheSub = searchRegister(token);	
 				
 				token = strtok(NULL, ", ");
-				firstOperand = registers[searchRegister(token)][0];
+				firstOperand = registers[searchRegister(token)];
 
 				token = strtok(NULL, " ");
-				secondOperand = registers[searchRegister(token)][0];
+				secondOperand = registers[searchRegister(token)];
 
-				registers[saveTheSub][0] = firstOperand - secondOperand;
+				registers[saveTheSub] = firstOperand - secondOperand;
 			//end if
 		}
 		else if (strcmp(token, "mul") == 0){
 			validateInstruction = 1;
 			jump = 3;
-			printf("%s", instruction);
-
+			fprintf(f1, "%s\n", instruction);
+			fprintf(f2, "\n%s", instruction);
+			
 			//if (verificar si no hay error en la multiplicación)
 				int saveTheMul, firstOperand, secondOperand;
 				token = strtok(NULL, ", ");
 				saveTheMul = searchRegister(token);
 
 				token = strtok(NULL, ", ");
-				firstOperand = registers[searchRegister(token)][0];
+				firstOperand = registers[searchRegister(token)];
 
 				token = strtok(NULL, " ");
-				secondOperand = registers[searchRegister(token)][0];
+				secondOperand = registers[searchRegister(token)];
 
-				registers[saveTheMul][0] = firstOperand * secondOperand;
+				registers[saveTheMul] = firstOperand * secondOperand;
 			//end if
 		}
 		else if (strcmp(token, "div") == 0){
 			validateInstruction = 1;
 			jump = 3;
-			printf("%s", instruction);
+			fprintf(f1, "%s\n", instruction);
+			fprintf(f2, "\n%s", instruction);
 
 			//if (verificar si no hay error en la multiplicación)
 				int saveTheDiv, firstOperand, secondOperand;
@@ -400,18 +401,19 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 				saveTheDiv = searchRegister(token);
 
 				token = strtok(NULL, ", ");
-				firstOperand = registers[searchRegister(token)][0];
+				firstOperand = registers[searchRegister(token)];
 
 				token = strtok(NULL, " ");
-				secondOperand = registers[searchRegister(token)][0];
+				secondOperand = registers[searchRegister(token)];
 
-				registers[saveTheDiv][0] = firstOperand / secondOperand;
+				registers[saveTheDiv] = firstOperand / secondOperand;
 			//end if
 		}
 		else if (strcmp(token, "lw") == 0){
 			validateInstruction = 1;
 			jump = 3;
-			printf("%s   ", instruction);
+			fprintf(f1, "%s   \n", instruction);
+			fprintf(f2, "\n%s   ", instruction);
 
 			//if (verificar si funciona lw)
 				int saveTheValue, position, value;
@@ -422,20 +424,21 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 				position = atoi(token) / 4;
 
 				token = strtok(NULL, ")");
-				value = registers[searchRegister(token)][position];
+				value = memory[searchRegister(token)][position];
 
-				registers[saveTheValue][0] = value;
+				memory[saveTheValue][0] = value;
 			//end if
 		}
 		else if (strcmp(token, "sw") == 0){
 			validateInstruction = 1;
 			jump = 3;
-			printf("%s   ", instruction);
+			fprintf(f1, "%s   \n", instruction);
+			fprintf(f2, "\n%s   ", instruction);
 
 			//if (verificar si funciona sw)
 				int valueToSet, position, registerToSet;
 				token = strtok(NULL, ", ");
-				valueToSet = registers[searchRegister(token)][0];
+				valueToSet = registers[searchRegister(token)];
 
 				token = strtok(NULL, "(");
 				position = atoi(token) / 4;
@@ -443,38 +446,51 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions){
 				token = strtok(NULL, ")");
 				registerToSet = searchRegister(token);
 
-				registers[registerToSet][position] = valueToSet;
+				memory[registerToSet][position] = valueToSet;
 			//end if
 		}
 
 		if (jump == 3){
-			printf(" ");
+			fprintf(f1, " \n");
+			fprintf(f2, " ");
 			node = node->next;
 		}
 		else if (jump == 0 || jump == 1){
 			node = node->next;
 		}
 
-		if (validateInstruction != 0){ 
-			for(int i=0; i<32; i++) printf(" | %d", registers[i][0]);
-			printf("\n");
-		}
+		if (validateInstruction != 0) for(int i=0; i<32; i++) fprintf(f2, " | %d", registers[i]);
 
 	}
-	for(int i=0; i<32; i++) free(registers[i]);
+	fprintf(f2, "\n");
+	for(int i=0; i<32; i++) free(memory[i]);
+	free(memory);
 	free(registers);
+	fclose(f1);
+	fclose(f2);
 
 }
 
-int main(){
+void run(){
 	char firstFile[100];
 	char secondFile[100];
+	char firstOutputFile[100];
+	char secondOutputFile[100];
+
+
+	printf("\nPARA EL INGRESO DE NOMBRES DE ARCHIVO, SE DEBE INCLUIR LA EXTENSIÓN. SE RECOMIENDA ARCHIVO DE TEXTO PLANO (.txt)\n\n");
 
 	printf("Ingrese el nombre del archivo que contiene las instrucciones de un programa MIPS: ");
 	scanf("%s", firstFile);
 
 	printf("Ingrese el nombre del archivo que contiene la lista con las líneas de control: ");
 	scanf("%s", secondFile);
+
+	printf("Ingrese el nombre del archivo de salida que contendrá la traza del programa: ");
+	scanf("%s", firstOutputFile);
+
+	printf("Ingrese el nombre del archivo de salida que contendrá la traza de los registros: ");
+	scanf("%s", secondOutputFile);
 
 	ListOfLines* linesFirstFile;
 	ListOfLines* linesSecondFile;
@@ -489,10 +505,14 @@ int main(){
 
 	//showRestrictions(restrictions);
 
-	showTrace(linesFirstFile, restrictions);
+	showTrace(linesFirstFile, restrictions, firstOutputFile, secondOutputFile);
 
-	free(linesSecondFile->first);
-	free(linesFirstFile->first);
+	freeList(linesSecondFile->first);
+	freeList(linesFirstFile->first);
+	freeRestrictions(restrictions->first);
 
-	return 0;
+	printf("Archivos generados correctamente!\n");
 }
+
+
+
