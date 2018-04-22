@@ -11,8 +11,7 @@ void appendLine(ListOfLines* lines, char* line){
 	if (lines->length == 0){
 		lines->first = node;
 		lines->last = node;
-	}
-	else{
+	} else {
 		lines->last->next = node;
 		lines->last = node;
 	}
@@ -32,8 +31,7 @@ void appendRestriction(RestrictionsList* list, char* instruction, char state){
 	if (list->length == 0){
 		list->first = node;
 		list->last = node;
-	}
-	else{
+	} else {
 		list->last->next = node;
 		list->last = node;
 	}
@@ -227,7 +225,7 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions, char* first
 			fprintf(f1, "%s\n", instruction);
 			fprintf(f2, "\n%s ", instruction);
 
-			//if (searchError(restrictions, "Regwrite") == 0){
+			if (searchError(restrictions, "Regwrite") == 0){
 				int saveTheSum, firstOperand, secondOperand;
 				token = strtok(NULL, ", ");
 				saveTheSum = searchRegister(token);
@@ -239,15 +237,14 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions, char* first
 				secondOperand = atoi(token);
 				
 				registers[saveTheSum] = firstOperand + secondOperand;
-			//}
-		}
-		else if (strcmp(token, "subi") == 0){
+			}
+		} else if (strcmp(token, "subi") == 0) {
 			validateInstruction = 1;
 			jump = 3;
 			fprintf(f1, "%s\n", instruction);
 			fprintf(f2, "\n%s ", instruction);
 
-			//if (searchError(restrictions, "Regwrite") == 0){
+			if (searchError(restrictions, "Regwrite") == 0){
 				int saveTheSub, firstOperand, secondOperand;
 				token = strtok(NULL, ", ");
 				saveTheSub = searchRegister(token);	
@@ -259,9 +256,8 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions, char* first
 				secondOperand = atoi(token);
 
 				registers[saveTheSub] = firstOperand - secondOperand;
-			//}
-		}
-		else if (strcmp(token, "beq") == 0){
+			}
+		} else if (strcmp(token, "beq") == 0) {
 			validateInstruction = 1;
 			jump = 1;
 			fprintf(f1, "%s\n", instruction);
@@ -282,8 +278,7 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions, char* first
 				}
 			}
 
-		}
-		else if (strcmp(token, "jump") == 0 || strcmp(token, "j") == 0 || strcmp(token, "Jump") == 0){
+		} else if (strcmp(token, "jump") == 0 || strcmp(token, "j") == 0 || strcmp(token, "Jump") == 0) {
 			validateInstruction = 1;
 			jump = 1;
 			fprintf(f1, "%s          \n", instruction);
@@ -294,8 +289,7 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions, char* first
 				token = strtok(NULL, " ");
 				node = searchLabel(program, token);
 			}
-		}
-		else if (strcmp(token, "add") == 0){
+		} else if (strcmp(token, "add") == 0) {
 			validateInstruction = 1;
 			jump = 3;
 			fprintf(f1, "%s\n", instruction);
@@ -314,8 +308,7 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions, char* first
 
 				registers[saveTheSum] = firstOperand + secondOperand;
 			}
-		}
-		else if (strcmp(token, "sub") == 0){
+		} else if (strcmp(token, "sub") == 0) {
 			validateInstruction = 1;
 			jump = 3;
 			fprintf(f1, "%s\n", instruction);
@@ -334,8 +327,7 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions, char* first
 
 				registers[saveTheSub] = firstOperand - secondOperand;
 			}
-		}
-		else if (strcmp(token, "mul") == 0){
+		} else if (strcmp(token, "mul") == 0) {
 			validateInstruction = 1;
 			jump = 3;
 			fprintf(f1, "%s\n", instruction);
@@ -354,8 +346,7 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions, char* first
 
 				registers[saveTheMul] = firstOperand * secondOperand;
 			}
-		}
-		else if (strcmp(token, "div") == 0){
+		} else if (strcmp(token, "div") == 0) {
 			validateInstruction = 1;
 			jump = 3;
 			fprintf(f1, "%s\n", instruction);
@@ -374,8 +365,7 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions, char* first
 
 				registers[saveTheDiv] = firstOperand / secondOperand;
 			}
-		}
-		else if (strcmp(token, "lw") == 0){
+		} else if (strcmp(token, "lw") == 0) {
 			validateInstruction = 1;
 			jump = 3;
 			fprintf(f1, "%s   \n", instruction);
@@ -394,8 +384,7 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions, char* first
 
 				registers[saveTheValue] = value;
 			}
-		}
-		else if (strcmp(token, "sw") == 0){
+		} else if (strcmp(token, "sw") == 0) {
 			validateInstruction = 1;
 			jump = 3;
 			fprintf(f1, "%s   \n", instruction);
@@ -420,8 +409,7 @@ void showTrace(ListOfLines* program, RestrictionsList* restrictions, char* first
 			fprintf(f1, " \n");
 			fprintf(f2, " ");
 			node = node->next;
-		}
-		else if (jump == 0 || jump == 1){
+		} else if (jump == 0 || jump == 1) {
 			node = node->next;
 		}
 
