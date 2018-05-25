@@ -1,0 +1,7 @@
+add $t0, $t1, $t3
+addi $t6, $s0, 8
+subi $t5, $t4, 3
+beq $s0, $s6, EXIT
+div $s8, $s8, %t5
+mul $s4, $s2, $s4
+sub $s7, $s3, $s1
