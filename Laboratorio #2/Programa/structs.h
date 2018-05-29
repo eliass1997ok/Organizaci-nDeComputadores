@@ -75,6 +75,7 @@ typedef struct instructionNode{
 	char* secondOperand;
 	char* thirdOperand;
 	int offset;
+	int type;
 
 	struct instructionNode* next;
 }InstructionNode;

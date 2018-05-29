@@ -39,7 +39,7 @@ void appendRestriction(RestrictionsList* list, char* instruction, char state){
 	list->length++;
 }
 
-void appendInstruction(InstructionLinkedList* list, char* instruction, char* firstOperand, char* secondOperand, char* thirdOperand, int offset){
+void appendInstruction(InstructionLinkedList* list, char* instruction, char* firstOperand, char* secondOperand, char* thirdOperand, int offset, int type){
 	InstructionNode* node;
 	node = (InstructionNode*)calloc(1, sizeof(InstructionNode));
 
@@ -53,6 +53,7 @@ void appendInstruction(InstructionLinkedList* list, char* instruction, char* fir
 	strcpy(node->secondOperand, secondOperand);
 	strcpy(node->thirdOperand, thirdOperand);
 	node->offset = offset;
+	node->type = type;
 
 	if (list->length == 0){
 		list->first = node;
@@ -478,7 +479,6 @@ int* fillRegisters(ListOfLines* lines){
 	int* registers;
 
 	registers = (int*)calloc(32, sizeof(int));
-	// for (int i=0; i<32; i++) registers[i] = (int*)calloc(128, sizeof(int));
 
 	LinesNode* node;
 	node = lines->first;
@@ -501,25 +501,126 @@ int* fillRegisters(ListOfLines* lines){
 	return registers;
 }
 
-void writePipelinedFile(ListOfLines* program, int* registersFromFile, char* outputFile){
+char* searchHazardNonSeparatedLines(InstructionNode* firstLine, InstructionNode* nextLine){
+	if (firstLine->type == 1 && strcmp(firstLine->instruction, "beq") != 0 && 
+		nextLine->type == 1  && strcmp(nextLine->instruction, "beq") != 0 &&
+		(strcmp(firstLine->firstOperand, nextLine->secondOperand) == 0 || strcmp(firstLine->firstOperand, nextLine->thirdOperand) == 0) )
+
+		return firstLine->firstOperand;
+
+	else if (firstLine->type == 1 && strcmp(firstLine->instruction, "beq") != 0 && 
+			strcmp(nextLine->instruction, "beq") == 0 &&
+			(strcmp(firstLine->firstOperand, nextLine->firstOperand) == 0 || strcmp(firstLine->firstOperand, nextLine->secondOperand) == 0))
+
+		return firstLine->firstOperand;
+
+	return NULL;
+}
+
+char* determineLwHazard(InstructionNode* firstLine, InstructionNode* nextLine){
+	if (strcmp(firstLine->instruction, "lw") == 0  && nextLine && nextLine->type == 1 && strcmp(nextLine->instruction, "beq") != 0 && 
+		(strcmp(firstLine->firstOperand, nextLine->thirdOperand) == 0 || strcmp(firstLine->firstOperand, nextLine->secondOperand) == 0) )
+
+		return firstLine->firstOperand;
+
+
+	return NULL;
+
+}
+
+void writeHazardsFile(InstructionLinkedList* instructions, int* registersFromFile, char* outputFile){
 	FILE* f;
 	f = fopen(outputFile, "w");
 	
 	if (! f) exit(1);
 
-	LinesNode* instructionLine;
-	instructionLine = program->first;
+	InstructionNode* instructionLine;
+	instructionLine = instructions->first;
 
-	fprintf(f, "CICLOS;IF;ID;EX;MEM;WB");
+	fprintf(f, "CICLOS;DATOS;CONTROL\n");
 
-	int counter;
-	counter = 0;
-	// while (instructionLine){
-	// 	char* instruction;
-	// 	strcpy(instruction, instructionLine->line);
+	int marked;
+	marked = 0;
 
+	int lw;
+	lw = 0;
 
-	// }
+	int cicleCounter;
+	cicleCounter = 1;
+	
+	fprintf(f, "%d;;\n", cicleCounter);
+	cicleCounter++;
+	fprintf(f, "%d;;\n", cicleCounter);
+	cicleCounter++;
+	
+	InstructionNode* node;
+	node = instructions->first;
+
+	while (node){
+		int boolean = 0;
+
+		if (node->next && searchHazardNonSeparatedLines(node, node->next) && marked == 0 && lw != 2){
+
+			fprintf(f, "%d;%s;\n", cicleCounter, searchHazardNonSeparatedLines(node, node->next));
+			boolean = 1;
+		}
+
+		lw = 0;
+		marked = 0;
+
+		if (node->next && node->next->next && searchHazardNonSeparatedLines(node, node->next->next) &&
+			searchHazardNonSeparatedLines(node->next, node->next->next)){
+
+			cicleCounter++;
+			marked = 1;
+			boolean = 1;
+
+			fprintf(f, "%d;%s|%s;\n", cicleCounter, searchHazardNonSeparatedLines(node, node->next->next), searchHazardNonSeparatedLines(node->next, node->next->next));
+		}
+
+		if (node->next && node->next->next && searchHazardNonSeparatedLines(node, node->next->next) && marked == 0){
+			fprintf(f, "%d;;\n",cicleCounter);
+			cicleCounter++;
+			marked = 1;
+			boolean = 1;
+
+			fprintf(f, "%d;%s;\n", cicleCounter, searchHazardNonSeparatedLines(node, node->next->next));
+		}
+
+		if (node->next && determineLwHazard(node, node->next)){
+			fprintf(f, "%d;;\n", cicleCounter);
+			cicleCounter++;
+			boolean = 1;
+			lw = 1;
+			fprintf(f, "%d;%s;\n", cicleCounter, determineLwHazard(node, node->next));
+			cicleCounter++;
+			fprintf(f, "%d;%s;\n", cicleCounter, determineLwHazard(node, node->next));
+
+		}
+
+		if (node->next && node->next->next && lw == 0 && determineLwHazard(node, node->next->next) && 
+			searchHazardNonSeparatedLines(node->next, node->next->next)){
+			fprintf(f, "%d;;\n", cicleCounter);
+			cicleCounter++;
+			boolean = 1;
+			lw = 2;
+			fprintf(f, "%d;%s|%s;\n", cicleCounter, determineLwHazard(node, node->next->next), searchHazardNonSeparatedLines(node->next, node->next->next));
+
+		}
+
+		if (node->next && node->next->next && lw == 0 && determineLwHazard(node, node->next->next) && 
+			! searchHazardNonSeparatedLines(node->next, node->next->next)){
+			fprintf(f, "%d;;\n", cicleCounter);
+			cicleCounter++;
+			boolean = 1;
+			fprintf(f, "%d;%s;\n", cicleCounter, determineLwHazard(node, node->next->next));
+
+		}
+
+		if (! boolean) cicleCounter++;
+		node = node->next;
+	}
+
 }
 
 InstructionLinkedList* lineToInstruction(ListOfLines* lines){
@@ -543,23 +644,41 @@ InstructionLinkedList* lineToInstruction(ListOfLines* lines){
 
 			strcpy(firstOperand, strtok(NULL, ", "));
 			strcpy(secondOperand, strtok(NULL, ", "));
-			strcpy(thirdOperand, strtok(NULL, "\n"));
 
+			char* last = strtok(NULL, "\n");
+			strcpy(thirdOperand, strndup(last+1, strlen(last)));
 
-			appendInstruction(list, token, firstOperand, secondOperand, thirdOperand, 0);
+			appendInstruction(list, token, firstOperand, secondOperand, thirdOperand, 0, 1);
+
 		} else if (strcmp(token, "addi") == 0 || strcmp(token, "subi") == 0){
 			char firstOperand[20];
 			char secondOperand[20];
 			int thirdOperand;
 
-			printf("gola\n");
 			strcpy(firstOperand, strtok(NULL, ", "));
 			strcpy(secondOperand, strtok(NULL, ", "));
 			thirdOperand = atoi(strtok(NULL, "\n"));
 
-			appendInstruction(list, token, firstOperand, secondOperand, "", thirdOperand);
-		} 
+			appendInstruction(list, token, firstOperand, secondOperand, "", thirdOperand, 2);
 
+		} else if (strcmp(token, "j") == 0) {
+			char firstOperand[20];
+
+			strcpy(firstOperand, strtok(NULL, "\n"));
+
+			appendInstruction(list, token, firstOperand, "", "", 0, 3);
+
+		} else if (strcmp(token, "sw") == 0 || strcmp(token, "lw") == 0){
+			char firstOperand[20];
+			char secondOperand[20];
+			int offset;
+
+			strcpy(firstOperand, strtok(NULL, ", "));
+			offset = atoi(strtok(NULL, "("));
+			strcpy(secondOperand, strtok(NULL, ")"));
+
+			appendInstruction(list, token, firstOperand, secondOperand, "", offset, 4);
+		}
 
 		node = node->next;
 	}
@@ -604,13 +723,15 @@ void run(){
 	InstructionLinkedList* list;
 	list = lineToInstruction(linesSecondFile);
 
-	InstructionNode* node;
-	node = list->first;
+	writeHazardsFile(list, registers, "test.csv");
 
-	while (node){
-		printf("Nombre instrucción: %s\nPrimer Operando: %s\nSegundo Operando: %s\nTercer Operando: %s\nOffset: %d\n\n", node->instruction, node->firstOperand, node->secondOperand, node->thirdOperand, node->offset);
-		node = node->next;
-	}
+	// InstructionNode* node;
+	// node = list->first;
+
+	// while (node){
+	// 	printf("Nombre instrucción: %s\nPrimer Operando: %s\nSegundo Operando: %s\nTercer Operando: %s\nOffset: %d\n\n", node->instruction, node->firstOperand, node->secondOperand, node->thirdOperand, node->offset);
+	// 	node = node->next;
+	// }
 	
 	// showTrace(linesFirstFile, restrictions, firstOutputFile, secondOutputFile);
 
