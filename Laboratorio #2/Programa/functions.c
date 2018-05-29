@@ -502,13 +502,13 @@ int* fillRegisters(ListOfLines* lines){
 }
 
 char* searchHazardNonSeparatedLines(InstructionNode* firstLine, InstructionNode* nextLine){
-	if (firstLine->type == 1 && strcmp(firstLine->instruction, "beq") != 0 && 
-		nextLine->type == 1  && strcmp(nextLine->instruction, "beq") != 0 &&
+	if ((firstLine->type == 1 || firstLine->type == 2) && strcmp(firstLine->instruction, "beq") != 0 && 
+		(nextLine->type == 1 || nextLine->type == 2)  && strcmp(nextLine->instruction, "beq") != 0 &&
 		(strcmp(firstLine->firstOperand, nextLine->secondOperand) == 0 || strcmp(firstLine->firstOperand, nextLine->thirdOperand) == 0) )
 
 		return firstLine->firstOperand;
 
-	else if (firstLine->type == 1 && strcmp(firstLine->instruction, "beq") != 0 && 
+	else if ((firstLine->type == 1 || firstLine->type == 2) && strcmp(firstLine->instruction, "beq") != 0 && 
 			strcmp(nextLine->instruction, "beq") == 0 &&
 			(strcmp(firstLine->firstOperand, nextLine->firstOperand) == 0 || strcmp(firstLine->firstOperand, nextLine->secondOperand) == 0))
 
@@ -518,14 +518,13 @@ char* searchHazardNonSeparatedLines(InstructionNode* firstLine, InstructionNode*
 }
 
 char* determineLwHazard(InstructionNode* firstLine, InstructionNode* nextLine){
-	if (strcmp(firstLine->instruction, "lw") == 0  && nextLine && nextLine->type == 1 && strcmp(nextLine->instruction, "beq") != 0 && 
+	if (strcmp(firstLine->instruction, "lw") == 0  && nextLine && (nextLine->type == 1 || nextLine->type == 2) && strcmp(nextLine->instruction, "beq") != 0 && 
 		(strcmp(firstLine->firstOperand, nextLine->thirdOperand) == 0 || strcmp(firstLine->firstOperand, nextLine->secondOperand) == 0) )
 
 		return firstLine->firstOperand;
 
 
 	return NULL;
-
 }
 
 void writeHazardsFile(InstructionLinkedList* instructions, int* registersFromFile, char* outputFile){
@@ -562,6 +561,7 @@ void writeHazardsFile(InstructionLinkedList* instructions, int* registersFromFil
 		if (node->next && searchHazardNonSeparatedLines(node, node->next) && marked == 0 && lw != 2){
 
 			fprintf(f, "%d;%s;\n", cicleCounter, searchHazardNonSeparatedLines(node, node->next));
+			cicleCounter++;
 			boolean = 1;
 		}
 
@@ -579,8 +579,8 @@ void writeHazardsFile(InstructionLinkedList* instructions, int* registersFromFil
 		}
 
 		if (node->next && node->next->next && searchHazardNonSeparatedLines(node, node->next->next) && marked == 0){
-			fprintf(f, "%d;;\n",cicleCounter);
-			cicleCounter++;
+			// fprintf(f, "%d;;\n",cicleCounter);
+			// cicleCounter++;
 			marked = 1;
 			boolean = 1;
 
@@ -607,7 +607,6 @@ void writeHazardsFile(InstructionLinkedList* instructions, int* registersFromFil
 			fprintf(f, "%d;%s|%s;\n", cicleCounter, determineLwHazard(node, node->next->next), searchHazardNonSeparatedLines(node->next, node->next->next));
 
 		}
-
 		if (node->next && node->next->next && lw == 0 && determineLwHazard(node, node->next->next) && 
 			! searchHazardNonSeparatedLines(node->next, node->next->next)){
 			fprintf(f, "%d;;\n", cicleCounter);
