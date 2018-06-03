@@ -74,6 +74,7 @@ typedef struct instructionNode{
 	char* firstOperand;
 	char* secondOperand;
 	char* thirdOperand;
+	char* label;
 	int offset;
 	int type;
 
