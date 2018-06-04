@@ -10,37 +10,6 @@
 //################################### DEFINICIONES DE ESTRUCTURAS ###################################
 
 /**
- * @struct RestrictionsNode
- * @brief RestrictionsNode corresponde a un nodo de una lista enlazada. Permite almacenar los siguientes datos:
- *                         instruction: Corresponde a un string, que representa una línea de control.
- *                         state: Corresponde a un caracter, el cual indica si la línea de control presenta problemas.
- *                         next: Puntero hacia el siguiente nodo, del mismo tipo, con tal de crear una lista enlazada.
- *
- */
-
-typedef struct restrictionsNode{
-	char* instruction;
-	char state;
-	struct restrictionsNode* next;
-}RestrictionsNode;
-
-/**
- * @struct RestrictionsList
- * @brief RestrictionsList corresponde a una estructura que permite acceder al primer o al último elemento de una lista enlazada de restricciones.
- *                         También permite obtener la cantidad de nodos que la componen. Esta estructura está compuesta por los siguientes datos:
- *                         first: Corresponde a un puntero hacia el primer elemento de la lista enlazada.
- *                         last: Corresponde a un puntero hacia el último elemento de la lista enlazada.
- *                         length: Corresponde al largo de la lista enlazada.
- *
- */
-
-typedef struct restrictionsList{
-	RestrictionsNode* first;
-	RestrictionsNode* last;
-	int length;
-}RestrictionsList;
-
-/**
  * @struct LinesNode
  * @brief LinesNode corresponde a un nodo de una lista enlazada. Permite almacenar los siguientes datos:
  *                  line: Corresponde a un string, que representa una línea de un archivo.
@@ -69,6 +38,20 @@ typedef struct listOfLines{
 	int length;
 }ListOfLines;
 
+/**
+ * @struct instructionNode
+ * @brief instructionNode corresponde a una estructura que permite almacenar las instrucciones MIPS de manera ordenada.
+ *                   	  Esta estructura está compuesta por los siguientes datos:
+ *                   	  firstOperand: Corresponde a la primera parte de la instrucción.
+ *                    	  secondOperand: Corresponde a la segunda parte de la instrucción. En caso de no existir, se reemplaza por un string vacío.
+ *                   	  thirdOperand: Corresponde a la tercera parte de la instrucción. En caso de no existir, se reemplaza por un string vacío.
+ *                   	  label: Corresponde a la etiqueta a la que está asociada una instrucción.
+ *                   	  offset: Corresponde a cualquier posible constante presente en la instrucción.
+ *                   	  type: Corresponde a un 'identificador' del tipo de instrucción, con el fin de determinar la cantidad de operandos útiles que posee.
+ *                   	  
+ *                   	  
+ */
+
 typedef struct instructionNode{
 	char* instruction;
 	char* firstOperand;
@@ -81,12 +64,17 @@ typedef struct instructionNode{
 	struct instructionNode* next;
 }InstructionNode;
 
+/**
+ * @struct instructionLinkedList
+ * @brief instructionLinkedList corresponde a una estructura que permite acceder al primer o al último elemento de una lista enlazada de instrucciones.
+ *               		        También permite obtener la cantidad de nodos que la componen. Esta estructura está compuesta por los siguientes datos:
+ *               		        first: Corresponde a un puntero hacia el primer elemento de la lista enlazada.
+ *               		        last: Corresponde a un puntero hacia el último elemento de la lista enlazada.
+ *               		        length: Corresponde al largo de la lista enlazada.
+ *
+ */
 typedef struct instructionLinkedList{
 	InstructionNode* first;
 	InstructionNode* last;
 	int length;
 }InstructionLinkedList;
-
-
-
-

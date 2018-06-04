@@ -1,0 +1,10 @@
+CICLOS;IF;ID;EX;MEM;WB
+1;j; - ; - ; - ; - 
+2;add;j; - ; - ; - 
+3;beq;add;j; - ; - 
+4;mul;beq;add;j; - 
+5;addi;mul;beq;add;j
+6; - ;addi;mul;beq;add
+7; - ; - ;addi;mul;beq
+8; - ; - ; - ;addi;mul
+9; - ; - ; - ; - ;addi

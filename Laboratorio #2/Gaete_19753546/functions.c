@@ -19,26 +19,6 @@ void appendLine(ListOfLines* lines, char* line){
 	lines->length++;
 }
 
-void appendRestriction(RestrictionsList* list, char* instruction, char state){
-	RestrictionsNode* node;
-	node = (RestrictionsNode*)calloc(1, sizeof(RestrictionsNode));
-
-	node->instruction = (char*)calloc(32, sizeof(char));
-
-	strcpy(node->instruction, instruction);
-	node->state = state;
-
-	if (list->length == 0){
-		list->first = node;
-		list->last = node;
-	} else {
-		list->last->next = node;
-		list->last = node;
-	}
-
-	list->length++;
-}
-
 void appendInstruction(InstructionLinkedList* list, char* instruction, char* firstOperand, char* secondOperand, char* thirdOperand, int offset, int type, char* label){
 	InstructionNode* node;
 	node = (InstructionNode*)calloc(1, sizeof(InstructionNode));
@@ -144,17 +124,6 @@ void freeInstructionsList(InstructionNode* node){
 	}
 }
 
-void freeRestrictions(RestrictionsNode* node){
-	RestrictionsNode* aux;
-
-	while (node){
-		aux = node;
-		node = node->next;
-		free(aux->instruction);
-		free(aux);
-	}
-}
-
 ListOfLines* readFile(char* nameOfFile){
 	FILE* f = fopen(nameOfFile, "r");
 
@@ -176,48 +145,6 @@ ListOfLines* readFile(char* nameOfFile){
 	}
 
 	return lines;
-}
-
-RestrictionsList* createRestrictions(ListOfLines* lines){
-	LinesNode* aux;
-	aux = lines->first;
-
-	RestrictionsList* restrictions;
-	restrictions = (RestrictionsList*)calloc(1, sizeof(RestrictionsList));
-
-	while (aux){
-		RestrictionsNode* nodeOfRestrictions;
-		nodeOfRestrictions = (RestrictionsNode*)calloc(1, sizeof(RestrictionsNode));
-
-		char* token;
-		char instruction[32];
-
-		token = strtok(aux->line, " ");
-		strcpy(instruction, token);
-
-		token = strtok(NULL, " ");
-
-		appendRestriction(restrictions, instruction, token[0]);
-
-		aux = aux->next;
-	}
-
-	return restrictions;
-}
-
-LinesNode* searchLabel(ListOfLines* list, char* label){
-	LinesNode* node;
-	char* token;
-
-	node = list->first;
-
-	while (node){
-		token = strtok(node->line, ":");
-		if (strcmp(token, label) == 0) return node->next;
-		node = node->next;
-	}
-
-	return NULL;
 }
 
 int searchRegister(char* registerString){
@@ -254,19 +181,6 @@ int searchRegister(char* registerString){
 	if (strcmp(registerString, "$fp") == 0) return 30;
 	if (strcmp(registerString, "$ra") == 0) return 31;
 	return -1;
-}
-
-int searchError(RestrictionsList* restrictions, char* instruction){
-	RestrictionsNode* node;
-	node = restrictions->first;
-
-	while (node){
-		if (strcmp(node->instruction, instruction) == 0) 
-			if (node->state == 'x' || node->state == 'X') return 0;
-		node = node->next;
-	}
-
-	return 1;
 }
 
 int* fillRegisters(ListOfLines* lines){
@@ -353,7 +267,7 @@ void doTheOperation(InstructionNode* instruction, int* registers, int** memory){
 		registers[searchRegister(instruction->firstOperand)] = memory[searchRegister(instruction->secondOperand)][instruction->offset/4];
 }
 
-void writeHazardsFile(InstructionLinkedList* instructions, int* registersFromFile, char* outputFile, int* registers, int** memory){
+void writeHazardsFile(InstructionLinkedList* instructions, char* outputFile, int* registers, int** memory){
 	FILE* f;
 	f = fopen(outputFile, "w");
 	
@@ -486,7 +400,6 @@ void writeHazardsFile(InstructionLinkedList* instructions, int* registersFromFil
 		if (strcmp(node->instruction, "j") == 0){
 			fprintf(f, "%d;;X\n", cicleCounter);
 			cicleCounter++;
-			printf("hola, estoy en jump\n");
 			jump = 1;
 			node = searchJump(instructions, node->firstOperand);			
 		}
@@ -626,27 +539,29 @@ InstructionNode* createStall(){
 InstructionNode* getIF(InstructionLinkedList* stack){
 	return stack->first;
 }
+
 InstructionNode* getID(InstructionLinkedList* stack){
-	// printf("hola\n");
-	// printf("valor del puntero: %p\n", stack->first->next);
 	if (stack->first && stack->first->next) return stack->first->next;
 	return NULL;
 }
+
 InstructionNode* getEX(InstructionLinkedList* stack){
 	if(stack->first && stack->first->next) return stack->first->next->next;
 	return NULL;
 }
+
 InstructionNode* getMEM(InstructionLinkedList* stack){
 	if(stack->first && stack->first->next && stack->first->next->next) return stack->first->next->next->next;
 	return NULL;
 }
+
 InstructionNode* getWB(InstructionLinkedList* stack){
 	if(stack->first && stack->first->next && 
 		stack->first->next->next && stack->first->next->next->next) return stack->first->next->next->next->next;
 	return NULL;
 }
 
-void printInstrutions(InstructionLinkedList* stack, FILE* f, int cycle){
+void printInstructions(InstructionLinkedList* stack, FILE* f, int cycle){
 		InstructionNode* nodeIF = getIF(stack);
 		char* IF;
 		if (nodeIF) IF = nodeIF->instruction;
@@ -695,19 +610,19 @@ void finishPipeline(InstructionLinkedList* stack, FILE* f, int cycle){
 
 	pushInstruction(stack, createNull());
 
-	printInstrutions(stack, f, newCounter);
+	printInstructions(stack, f, newCounter);
 	pushInstruction(stack, createNull());
 	newCounter++;
 
-	printInstrutions(stack, f, newCounter);
+	printInstructions(stack, f, newCounter);
 	pushInstruction(stack, createNull());
 	newCounter++;
 
-	printInstrutions(stack, f, newCounter);
+	printInstructions(stack, f, newCounter);
 	pushInstruction(stack, createNull());
 	newCounter++;
 
-	printInstrutions(stack, f, newCounter);
+	printInstructions(stack, f, newCounter);
 	pushInstruction(stack, createNull());
 	newCounter++;
 }
@@ -735,7 +650,7 @@ void writePipelinedFile(InstructionLinkedList* instructions, char* filename){
 		lw = 0;
 
 		pushInstruction(stack, node);
-		printInstrutions(stack, f, cycle);
+		printInstructions(stack, f, cycle);
 
 		if (getID(stack) && getIF(stack) && determineLwHazard(getID(stack), getIF(stack))){
 			lw = 1;
@@ -753,31 +668,33 @@ void writePipelinedFile(InstructionLinkedList* instructions, char* filename){
 }
 
 void run(){
-	// char firstFile[100];
-	// char secondFile[100];
-	// char firstOutputFile[100];
-	// char secondOutputFile[100];
+	char firstFile[100];
+	char secondFile[100];
+	char firstOutputFile[100];
+	char secondOutputFile[100];
+	char thirdOutputFile[100];
 
+	printf("\nPARA EL INGRESO DE NOMBRES DE ARCHIVO, SE DEBE INCLUIR LA EXTENSIÓN. SE RECOMIENDA ARCHIVO DE TEXTO PLANO (.txt)\n\n");
 
-	// printf("\nPARA EL INGRESO DE NOMBRES DE ARCHIVO, SE DEBE INCLUIR LA EXTENSIÓN. SE RECOMIENDA ARCHIVO DE TEXTO PLANO (.txt)\n\n");
+	printf("Ingrese el nombre del archivo que contiene las instrucciones de un programa MIPS: ");
+	scanf("%s", firstFile);
 
-	// printf("Ingrese el nombre del archivo que contiene las instrucciones de un programa MIPS: ");
-	// scanf("%s", firstFile);
+	printf("Ingrese el nombre del archivo que contiene la lista con los valores de los registros: ");
+	scanf("%s", secondFile);
 
-	// printf("Ingrese el nombre del archivo que contiene la lista con los valores de los registros: ");
-	// scanf("%s", secondFile);
+	printf("Ingrese el nombre del archivo de salida que contendrá la traza del programa (pipelined): ");
+	scanf("%s", firstOutputFile);
 
-	// printf("Ingrese el nombre del archivo de salida que contendrá la traza del programa: ");
-	// scanf("%s", firstOutputFile);
+	printf("Ingrese el nombre del archivo de salida que contendrá la detección de hazards: ");
+	scanf("%s", secondOutputFile);
 
-	// printf("Ingrese el nombre del archivo de salida que contendrá la traza de los registros: ");
-	// scanf("%s", secondOutputFile);
+	printf("Ingrese el nombre del archivo de salida que contendrá la traza multiple-issue: ");
+	scanf("%s", thirdOutputFile);
 
 	ListOfLines* linesFirstFile;
 	ListOfLines* linesSecondFile;
-	linesFirstFile = readFile("registers.txt");
-	linesSecondFile = readFile("mips.txt");
-
+	linesFirstFile = readFile(secondFile);
+	linesSecondFile = readFile(firstFile);
 
 	int* registers;
 	registers = fillRegisters(linesFirstFile);
@@ -790,26 +707,12 @@ void run(){
 	InstructionLinkedList* list;
 	list = lineToInstruction(linesSecondFile);
 
-
-
-	writeHazardsFile(list, registers, "test.csv", registers, memory);
-	// writePipelinedFile(list, "pipeline.csv");
-
-	// InstructionNode* node;
-	// node = list->first;
-
-	// while (node){
-	// 	printf("Nombre instrucción: %s\nPrimer Operando: %s\nSegundo Operando: %s\nTercer Operando: %s\nOffset: %d\nLabel: %s\n", node->instruction, node->firstOperand, node->secondOperand, node->thirdOperand, node->offset, node->label);
-	// 	node = node->next;
-	// }
+	writeHazardsFile(list, secondOutputFile, registers, memory);
+	writePipelinedFile(list, firstOutputFile);
 	
-	for (int i=0; i<32; i++) printf("%d: %d\n", i+1, registers[i]);
-
-	// showTrace(linesFirstFile, restrictions, firstOutputFile, secondOutputFile);
-
 	freeList(linesFirstFile->first);
 	freeList(linesSecondFile->first);
 	freeInstructionsList(list->first);
 
-	// printf("Archivos generados correctamente!\n");
+	printf("Archivos generados correctamente!\n");
 }
