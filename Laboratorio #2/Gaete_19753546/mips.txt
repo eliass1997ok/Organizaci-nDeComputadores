@@ -1,6 +1,0 @@
-j EXIT
-add $v1, $v0, $v1
-beq $v0, $s1, EXIT
-mul $v0, $v0, $v0
-EXIT:
-addi $v1, $v1, 100

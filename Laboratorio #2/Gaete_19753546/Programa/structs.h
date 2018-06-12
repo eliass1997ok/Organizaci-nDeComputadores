@@ -73,6 +73,7 @@ typedef struct instructionNode{
  *               		        length: Corresponde al largo de la lista enlazada.
  *
  */
+
 typedef struct instructionLinkedList{
 	InstructionNode* first;
 	InstructionNode* last;

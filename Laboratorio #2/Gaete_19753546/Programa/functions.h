@@ -284,7 +284,7 @@ InstructionNode* getEX(InstructionLinkedList* stack);
  * 
  */
 
- void writePipelinedFile(InstructionLinkedList* instructions, char* filename);
+ void writePipelinedFile(InstructionLinkedList* instructions, char* filename, int* registers, int** memory);
 
 /**
  * @brief run procedimiento que permite inciar el programa.
