@@ -277,6 +277,18 @@ InstructionNode* getEX(InstructionLinkedList* stack);
  void finishPipeline(InstructionLinkedList* stack, FILE* f, int cycle);
 
 /**
+ * @brief beq procedimimento que permite determinar el resultado de una instrucción beq
+ * 
+ * @param node corresponde a la instrucción que contiene los registros a comparar.
+ * @param registers corresponde a los valores en registros.
+ *
+ * @return 1 si se cumple la igualdad, 0 en caso contrario.
+ * 
+ */
+
+ int beq(InstructionNode* node, int* registers);
+
+/**
  * @brief writePipelinedFile procedimimento que permite escribir en un archivo el programa ejecutado en un pipeline de 5 etapas.
  * 
  * @param instructions corresponde a la lista de instrucciones del programa.

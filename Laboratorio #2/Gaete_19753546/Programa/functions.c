@@ -627,7 +627,7 @@ void finishPipeline(InstructionLinkedList* stack, FILE* f, int cycle){
 	newCounter++;
 }
 
-int beq(InstructionLinkedList* list, InstructionNode* node, int* registers){
+int beq(InstructionNode* node, int* registers){
 	if (registers[searchRegister(node->firstOperand)] == registers[searchRegister(node->secondOperand)])
 		return 1;
 
@@ -654,7 +654,6 @@ void writePipelinedFile(InstructionLinkedList* instructions, char* filename, int
 	int lw = 0;
 
 	while (node){
-		printf("%s\n", node->instruction);
 		pushInstruction(stack, node);
 		printInstructions(stack, f, cycle);
 
@@ -674,7 +673,6 @@ void writePipelinedFile(InstructionLinkedList* instructions, char* filename, int
 
 		if (strcmp(node->instruction, "beq") == 0 || strcmp(node->instruction, "j") == 0){
 			int mark = 0;
-			printf("acá, antes de los ig\n");
 			if (node->next){
 				pushInstruction(stack, node->next);
 				cycle++;
@@ -683,14 +681,11 @@ void writePipelinedFile(InstructionLinkedList* instructions, char* filename, int
 				pushInstruction(stack, createStall());
 			}
 
-			printf("aslasdkasd\n");
 
-			if (strcmp(node->instruction, "j") != 0 && beq(instructions, node, registers)){
-				printf("acá\n");
+			if (strcmp(node->instruction, "j") != 0 && beq(node, registers)){
 				mark = 1;
 				lw = 1;
 				node = searchJump(instructions, node->thirdOperand);
-				// printf("%s\n", );
 			}
 
 			if (node && strcmp(node->instruction, "j") == 0){
@@ -708,27 +703,20 @@ void writePipelinedFile(InstructionLinkedList* instructions, char* filename, int
 					if(jumpedNode->next){
 						pushInstruction(stack, jumpedNode->next);
 						cycle++;
-						printf("entré pro acascas\n");
 						printInstructions(stack, f, cycle);
 						popInstruction(stack);
 						popInstruction(stack);
 						cycle++;
 						pushInstruction(stack, createStall());
 						pushInstruction(stack, createStall());
-						// printInstructions(stack, f, cycle);
+
 					} else {
 						popInstruction(stack);
 						cycle++;
-						printf("%s\n", jumpedNode->instruction);
 						pushInstruction(stack, createStall());
-						printf("asdjaksdjlaksdjlkasdjaklsdjlkasdjlaksdjlaksdjlkasjdklasjdlkasjd\n");
-						// printInstructions(stack, f, cycle);
 					}
 				}
-			}
-			// InstructionNode* aux;
-			// aux = beq(instructions, node, registers);
-			
+			}	
 		}
 
 		cycle++;
@@ -742,35 +730,33 @@ void writePipelinedFile(InstructionLinkedList* instructions, char* filename, int
 }
 
 void run(){
-	// char firstFile[100];
-	// char secondFile[100];
-	// char firstOutputFile[100];
-	// char secondOutputFile[100];
-	// char thirdOutputFile[100];
+	char firstFile[100];
+	char secondFile[100];
+	char firstOutputFile[100];
+	char secondOutputFile[100];
+	char thirdOutputFile[100];
 
 	printf("\nPARA EL INGRESO DE NOMBRES DE ARCHIVO, SE DEBE INCLUIR LA EXTENSIÓN. SE RECOMIENDA ARCHIVO DE TEXTO PLANO (.txt)\n\n");
 
-	// printf("Ingrese el nombre del archivo que contiene las instrucciones de un programa MIPS: ");
-	// scanf("%s", firstFile);
+	printf("Ingrese el nombre del archivo que contiene las instrucciones de un programa MIPS: ");
+	scanf("%s", firstFile);
 
-	// printf("Ingrese el nombre del archivo que contiene la lista con los valores de los registros: ");
-	// scanf("%s", secondFile);
+	printf("Ingrese el nombre del archivo que contiene la lista con los valores de los registros: ");
+	scanf("%s", secondFile);
 
-	// printf("Ingrese el nombre del archivo de salida que contendrá la traza del programa (pipelined): ");
-	// scanf("%s", firstOutputFile);
+	printf("Ingrese el nombre del archivo de salida que contendrá la traza del programa (pipelined): ");
+	scanf("%s", firstOutputFile);
 
-	// printf("Ingrese el nombre del archivo de salida que contendrá la detección de hazards: ");
-	// scanf("%s", secondOutputFile);
+	printf("Ingrese el nombre del archivo de salida que contendrá la detección de hazards: ");
+	scanf("%s", secondOutputFile);
 
-	// printf("Ingrese el nombre del archivo de salida que contendrá la traza multiple-issue: ");
-	// scanf("%s", thirdOutputFile);
+	printf("Ingrese el nombre del archivo de salida que contendrá la traza multiple-issue: ");
+	scanf("%s", thirdOutputFile);
 
 	ListOfLines* linesFirstFile;
 	ListOfLines* linesSecondFile;
-	// linesFirstFile = readFile(secondFile);
-	// linesSecondFile = readFile(firstFile);
-	linesFirstFile = readFile("registers.txt");
-	linesSecondFile = readFile("instructions.txt");
+	linesFirstFile = readFile(secondFile);
+	linesSecondFile = readFile(firstFile);
 
 	int* registers1;
 	registers1 = fillRegisters(linesFirstFile);
@@ -793,9 +779,8 @@ void run(){
 	InstructionLinkedList* list;
 	list = lineToInstruction(linesSecondFile);
 
-	writeHazardsFile(list, "hazards.csv", registers1, memory1); //secon output file
-	printf("asjdalksdjlaksd\n");
-	writePipelinedFile(list, "pipeline.csv", registers2, memory2); //firstOutputFile
+	writeHazardsFile(list, secondOutputFile, registers1, memory1);
+	writePipelinedFile(list, firstOutputFile, registers2, memory2);
 	
 	freeList(linesFirstFile->first);
 	freeList(linesSecondFile->first);
