@@ -1,7 +1,0 @@
-addi $t0, $t5, 2
-beq $t1, $t2, END
-mul $t6, $s6, $s6
-addi $t5, $t8, 2
-END:
-div $t5, $t6, $t8
-sub $t4, $t1, $t1

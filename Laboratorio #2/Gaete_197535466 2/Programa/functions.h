@@ -166,15 +166,15 @@ void doTheOperation(InstructionNode* instruction, int* registers, int** memory);
 void writeHazardsFile(InstructionLinkedList* instructions, char* outputFile, int* registers, int** memory);
 
 /**
- * @brief lineToInstruction función que permite transformar una lista de strings en una lista de instrucciones.
+ * @brief lineToInstruction función que permite crear una lista de instrucciones.
  *
- * @param lines corresponde a una lista enlazada en la que se tiene cada línea del texto con instrucciones.
+ * @param filename corresponde a un nombre de archivo con instrucciones MIPS.
  *
  * @return InstructionLinkedList* correspondiente a la lista enlazada de instrucciones.
  *
  */
 
-InstructionLinkedList* lineToInstruction(ListOfLines* lines);
+InstructionLinkedList* instructionLine(char* filename);
 
 /**
  * @brief createStall función que permite crear una instrucción especial que sirve de espera.

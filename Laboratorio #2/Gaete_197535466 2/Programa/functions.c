@@ -138,9 +138,6 @@ ListOfLines* readFile(char* nameOfFile){
 	char buffer[255];
 
 	while (fgets(buffer, 255, (FILE*)f)){
-		LinesNode* node;
-		node = (LinesNode*)calloc(1, sizeof(LinesNode));
-
 		appendLine(lines, buffer);
 	}
 
@@ -148,38 +145,38 @@ ListOfLines* readFile(char* nameOfFile){
 }
 
 int searchRegister(char* registerString){
-	if (strcmp(registerString, "$zero") == 0) return 0;
-	if (strcmp(registerString, "$at") == 0) return 1;
-	if (strcmp(registerString, "$v0") == 0) return 2;
-	if (strcmp(registerString, "$v1") == 0) return 3;
-	if (strcmp(registerString, "$a0") == 0) return 4;
-	if (strcmp(registerString, "$a1") == 0) return 5;
-	if (strcmp(registerString, "$a2") == 0) return 6;
-	if (strcmp(registerString, "$a3") == 0) return 7;
-	if (strcmp(registerString, "$t0") == 0) return 8;
-	if (strcmp(registerString, "$t1") == 0) return 9;
-	if (strcmp(registerString, "$t2") == 0) return 10;
-	if (strcmp(registerString, "$t3") == 0) return 11;
-	if (strcmp(registerString, "$t4") == 0) return 12;
-	if (strcmp(registerString, "$t5") == 0) return 13;
-	if (strcmp(registerString, "$t6") == 0) return 14;
-	if (strcmp(registerString, "$t7") == 0) return 15;
-	if (strcmp(registerString, "$s0") == 0) return 16;
-	if (strcmp(registerString, "$s1") == 0) return 17;
-	if (strcmp(registerString, "$s2") == 0) return 18;
-	if (strcmp(registerString, "$s3") == 0) return 19;
-	if (strcmp(registerString, "$s4") == 0) return 20;
-	if (strcmp(registerString, "$s5") == 0) return 21;
-	if (strcmp(registerString, "$s6") == 0) return 22;
-	if (strcmp(registerString, "$s7") == 0) return 23;
-	if (strcmp(registerString, "$t8") == 0) return 24;
-	if (strcmp(registerString, "$t9") == 0) return 25;
-	if (strcmp(registerString, "$k0") == 0) return 26;
-	if (strcmp(registerString, "$k1") == 0) return 27;
-	if (strcmp(registerString, "$gp") == 0) return 28;
-	if (strcmp(registerString, "$sp") == 0) return 29;
-	if (strcmp(registerString, "$fp") == 0) return 30;
-	if (strcmp(registerString, "$ra") == 0) return 31;
+	if (strcmp(registerString, "$zero") == 0 || strcmp(registerString, "$zero)") == 0) return 0;
+	if (strcmp(registerString, "$at") == 0 || strcmp(registerString, "$at)") == 0) return 1;
+	if (strcmp(registerString, "$v0") == 0 || strcmp(registerString, "$v0)") == 0) return 2;
+	if (strcmp(registerString, "$v1") == 0 || strcmp(registerString, "$v1)") == 0) return 3;
+	if (strcmp(registerString, "$a0") == 0 || strcmp(registerString, "$a0)") == 0) return 4;
+	if (strcmp(registerString, "$a1") == 0 || strcmp(registerString, "$a1)") == 0) return 5;
+	if (strcmp(registerString, "$a2") == 0 || strcmp(registerString, "$a2)") == 0) return 6;
+	if (strcmp(registerString, "$a3") == 0 || strcmp(registerString, "$a3)") == 0) return 7;
+	if (strcmp(registerString, "$t0") == 0 || strcmp(registerString, "$t0)") == 0) return 8;
+	if (strcmp(registerString, "$t1") == 0 || strcmp(registerString, "$t1)") == 0) return 9;
+	if (strcmp(registerString, "$t2") == 0 || strcmp(registerString, "$t2)") == 0) return 10;
+	if (strcmp(registerString, "$t3") == 0 || strcmp(registerString, "$t3)") == 0) return 11;
+	if (strcmp(registerString, "$t4") == 0 || strcmp(registerString, "$t4)") == 0) return 12;
+	if (strcmp(registerString, "$t5") == 0 || strcmp(registerString, "$t5)") == 0) return 13;
+	if (strcmp(registerString, "$t6") == 0 || strcmp(registerString, "$t6)") == 0) return 14;
+	if (strcmp(registerString, "$t7") == 0 || strcmp(registerString, "$t7)") == 0) return 15;
+	if (strcmp(registerString, "$s0") == 0 || strcmp(registerString, "$s0)") == 0) return 16;
+	if (strcmp(registerString, "$s1") == 0 || strcmp(registerString, "$s1)") == 0) return 17;
+	if (strcmp(registerString, "$s2") == 0 || strcmp(registerString, "$s2)") == 0) return 18;
+	if (strcmp(registerString, "$s3") == 0 || strcmp(registerString, "$s3)") == 0) return 19;
+	if (strcmp(registerString, "$s4") == 0 || strcmp(registerString, "$s4)") == 0) return 20;
+	if (strcmp(registerString, "$s5") == 0 || strcmp(registerString, "$s5)") == 0) return 21;
+	if (strcmp(registerString, "$s6") == 0 || strcmp(registerString, "$s6)") == 0) return 22;
+	if (strcmp(registerString, "$s7") == 0 || strcmp(registerString, "$s7)") == 0) return 23;
+	if (strcmp(registerString, "$t8") == 0 || strcmp(registerString, "$t8)") == 0) return 24;
+	if (strcmp(registerString, "$t9") == 0 || strcmp(registerString, "$t9)") == 0) return 25;
+	if (strcmp(registerString, "$k0") == 0 || strcmp(registerString, "$k0)") == 0) return 26;
+	if (strcmp(registerString, "$k1") == 0 || strcmp(registerString, "$k1)") == 0) return 27;
+	if (strcmp(registerString, "$gp") == 0 || strcmp(registerString, "$gp)") == 0) return 28;
+	if (strcmp(registerString, "$sp") == 0 || strcmp(registerString, "$sp)") == 0) return 29;
+	if (strcmp(registerString, "$fp") == 0 || strcmp(registerString, "$fp)") == 0) return 30;
+	if (strcmp(registerString, "$ra") == 0 || strcmp(registerString, "$ra)") == 0) return 31;
 	return -1;
 }
 
@@ -417,106 +414,92 @@ void writeHazardsFile(InstructionLinkedList* instructions, char* outputFile, int
 	fclose(f);
 }
 
-InstructionLinkedList* lineToInstruction(ListOfLines* lines){
+InstructionLinkedList* instructionLine(char* filename){
+	FILE* f;
+	f = fopen(filename, "r");
+
+	if (! f){
+		perror(filename);
+		exit(1);
+	}
+
 	InstructionLinkedList* list;
 	list = createInstructionLinkedList();
-
-	LinesNode* node;
-	node = lines->first;
 
 	int label;
 	label = 0;
 
 	char labelName[10];
 
-	while (node){
-		char* token;
-		token = strtok(node->line, " ");
+	while(! feof(f)){
+		char instruction[20];
 
-		if (strcmp(token, "add") == 0 || strcmp(token, "sub") == 0 || 
-			strcmp(token, "div") == 0 || strcmp(token, "mul") == 0 || 
-			strcmp(token, "beq") == 0){
+		fscanf(f, "%s", instruction);
+
+		if (strcmp(instruction, "add") == 0 || strcmp(instruction, "sub") == 0 || 
+			strcmp(instruction, "div") == 0 || strcmp(instruction, "mul") == 0 || 
+			strcmp(instruction, "beq") == 0){
 
 			char firstOperand[20];
 			char secondOperand[20];
 			char thirdOperand[20];
-
-			strcpy(firstOperand, strtok(NULL, ", "));
-			strcpy(secondOperand, strtok(NULL, ", "));
-
-			char* last = strtok(NULL, "\n");
-			strcpy(thirdOperand, strndup(last+1, strlen(last)));
+			fscanf(f, "%s %s %s", firstOperand, secondOperand, thirdOperand);
 
 			if (! label){
-				appendInstruction(list, token, firstOperand, secondOperand, thirdOperand, 0, 1, "");
-
+				appendInstruction(list, instruction, firstOperand, secondOperand, thirdOperand, 0, 1, "");
 			} else {
-				appendInstruction(list, token, firstOperand, secondOperand, thirdOperand, 0, 1, labelName);
+				appendInstruction(list, instruction, firstOperand, secondOperand, thirdOperand, 0, 1, labelName);
 				label = 0;
 			}
-
-			
-
-		} else if (strcmp(token, "addi") == 0 || strcmp(token, "subi") == 0){
+		} else if (strcmp(instruction, "addi") == 0 || strcmp(instruction, "subi") == 0){
 			char firstOperand[20];
 			char secondOperand[20];
-			int thirdOperand;
+			int thirdOperand = 0;
 
-			strcpy(firstOperand, strtok(NULL, ", "));
-			strcpy(secondOperand, strtok(NULL, ", "));
-			thirdOperand = atoi(strtok(NULL, "\n"));
+			fscanf(f, "%s %s %d", firstOperand, secondOperand, &thirdOperand);
 
 			if (! label){
-				appendInstruction(list, token, firstOperand, secondOperand, "", thirdOperand, 2, "");
+				appendInstruction(list, instruction, firstOperand, secondOperand, "", thirdOperand, 2, "");
 
 			} else {
-				appendInstruction(list, token, firstOperand, secondOperand, "", thirdOperand, 2, labelName);
+				appendInstruction(list, instruction, firstOperand, secondOperand, "", thirdOperand, 2, labelName);
 				label = 0;	
 			}
-
-			
-
-		} else if (strcmp(token, "j") == 0) {
+		} else if (strcmp(instruction, "j") == 0) {
 			char firstOperand[20];
 
-			strcpy(firstOperand, strtok(NULL, "\n"));
+			fscanf(f, "%s", firstOperand);
 
 			if (! label){
-				appendInstruction(list, token, firstOperand, "", "", 0, 3, "");
+				appendInstruction(list, instruction, firstOperand, "", "", 0, 3, "");
 
 			} else {
-				appendInstruction(list, token, firstOperand, "", "", 0, 3, labelName);
+				appendInstruction(list, instruction, firstOperand, "", "", 0, 3, labelName);
 				label = 0;	
 			}
-
-			
-
-		} else if (strcmp(token, "sw") == 0 || strcmp(token, "lw") == 0){
+		} else if (strcmp(instruction, "sw") == 0 || strcmp(instruction, "lw") == 0){
 			char firstOperand[20];
 			char secondOperand[20];
-			int offset;
+			int offset = 0;
 
-			strcpy(firstOperand, strtok(NULL, ", "));
-			offset = atoi(strtok(NULL, "("));
-			strcpy(secondOperand, strtok(NULL, ")"));
+			fscanf(f, "%s %d(%s)", firstOperand, &offset, secondOperand);
 
 			if (! label){
-				appendInstruction(list, token, firstOperand, secondOperand, "", offset, 4, "");
+				appendInstruction(list, instruction, firstOperand, secondOperand, "", offset, 4, "");
 
 			} else {
-				appendInstruction(list, token, firstOperand, secondOperand, "", offset, 4, labelName);
+				appendInstruction(list, instruction, firstOperand, secondOperand, "", offset, 4, labelName);
 				label = 0;
 			}
-
-			
 		} else {
+			char* token;
 			label = 1;
-			token = strtok(node->line, ":\n");
+			token = strtok(instruction, ":\n");
 			strcpy(labelName, token);
 		}
-
-		node = node->next;
 	}
+
+	fclose(f);
 
 	return list;
 }
@@ -736,7 +719,7 @@ void run(){
 	char secondOutputFile[100];
 	char thirdOutputFile[100];
 
-	printf("\nPARA EL INGRESO DE NOMBRES DE ARCHIVO, SE DEBE INCLUIR LA EXTENSIÓN. SE RECOMIENDA ARCHIVO DE TEXTO PLANO (.txt)\n\n");
+	printf("\nPARA EL INGRESO DE NOMBRES DE ARCHIVO, SE DEBE INCLUIR LA EXTENSIÓN. SE RECOMIENDA ARCHIVO DE TEXTO PLANO PARA LAS ENTRADAS (.txt) MIENTRAS QUE PARA LA SALIDA, DEBE SER UN ARCHIVO .csv\n\n");
 
 	printf("Ingrese el nombre del archivo que contiene las instrucciones de un programa MIPS: ");
 	scanf("%s", firstFile);
@@ -754,9 +737,10 @@ void run(){
 	scanf("%s", thirdOutputFile);
 
 	ListOfLines* linesFirstFile;
-	ListOfLines* linesSecondFile;
 	linesFirstFile = readFile(secondFile);
-	linesSecondFile = readFile(firstFile);
+
+	InstructionLinkedList* list;
+	list = instructionLine(firstFile);
 
 	int* registers1;
 	registers1 = fillRegisters(linesFirstFile);
@@ -776,14 +760,9 @@ void run(){
 
 	for (int i=0; i<32; i++) memory2[i] = (int*)calloc(100, sizeof(int));
 
-	InstructionLinkedList* list;
-	list = lineToInstruction(linesSecondFile);
-
 	writeHazardsFile(list, secondOutputFile, registers1, memory1);
 	writePipelinedFile(list, firstOutputFile, registers2, memory2);
 	
-	freeList(linesFirstFile->first);
-	freeList(linesSecondFile->first);
 	freeInstructionsList(list->first);
 
 	printf("Archivos generados correctamente!\n");
