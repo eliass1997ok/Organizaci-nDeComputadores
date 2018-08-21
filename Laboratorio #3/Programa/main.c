@@ -100,6 +100,66 @@ void freeNumberList(NumberNode* node){
     }
 }
 
+void removeByIndex(NumberLinkedList* list, int index){
+    if (list->first == NULL){
+        return;
+    }
+
+    NumberNode* aux = list->first;
+
+    if (index == 0){
+        list->first = aux->next;
+        list->length--;
+        free(aux);
+        return;
+    }
+
+    for (int i=0; aux != NULL && i < index-1; i++) aux = aux->next;
+
+    if (aux == NULL || aux->next == NULL) return;
+
+    NumberNode* next;
+    next = aux->next->next;
+    list->length--;
+    aux->next = next;
+}
+
+int getIndex(NumberLinkedList* list, int element){
+    NumberNode* node;
+    int counter;
+    
+    node = list->first;
+    counter = 0;
+
+    while (node){
+        if (node->number == element) return counter;
+
+        node = node->next;
+        counter++;
+    }
+
+    return -1;
+}
+
+void removeByElement(NumberLinkedList* list, int element){
+    int index;
+    index = getIndex(list, element);
+
+    if (index != -1) removeByIndex(list, index);
+}
+
+int isIn(NumberLinkedList* list, int element){
+    NumberNode* node;
+    node = list->first;
+
+    while (node){
+        if (node->number == element) return 1;
+        node = node->next;
+    }
+
+    return -1;
+}
+
 void printGroups(int blocks){
     for (int i=1; i<=blocks; i=i*2) if (blocks % i == 0) printf("blocks per group: %d number of groups: %d\n", i, blocks/i);
 }
@@ -249,6 +309,16 @@ void fifo(int blocks, NumberLinkedList* list, ResultsList* results){
     }
 }
 
+void printList(NumberLinkedList* list){
+    NumberNode* node;
+    node = list->first;
+
+    while (node){
+        printf(" %d ", node->number);
+        node = node->next;
+    }
+}
+
 void lifo(int blocks, NumberLinkedList* list, ResultsList* results){
     int* numbers;
     numbers = listToArray(list);
@@ -288,6 +358,54 @@ void lifo(int blocks, NumberLinkedList* list, ResultsList* results){
     }
 }
 
+void lru(int blocks, NumberLinkedList* list, ResultsList* results){
+    int* numbers;
+    numbers = listToArray(list);
+
+    for (int i=1; i<=blocks; i=i*2){
+        NumberLinkedList* listUpdated;
+        int** cacheOrganization;
+        int misses, hits, groups;
+        listUpdated = createNumberList();
+        hits = 0;
+        misses = 0;
+        groups = blocks/i;
+        cacheOrganization = (int**)calloc(groups, sizeof(int*));
+
+        for(int j=0; j<groups; j++) cacheOrganization[j] = (int*)calloc(i, sizeof(int));
+
+        for (int iaux=0; iaux<groups; iaux++) for(int jaux=0; jaux<i; jaux++) cacheOrganization[iaux][jaux] = -1;
+
+        for (int counter = 0; counter < list->length; counter++){
+            int data = numbers[counter];
+            int position = data % groups;
+
+            int wordPosition;
+            wordPosition = searchSpace(cacheOrganization[position], i);
+
+            if (isIn(listUpdated, data) == -1){
+                appendNumberList(listUpdated, data);
+            } else {
+                removeByElement(listUpdated, data);
+                appendNumberList(listUpdated, data);
+            }
+
+            if (validateHit(cacheOrganization[position], data, i)){
+                hits++;
+            } else if (wordPosition == -1){
+                misses++;
+                wordPosition = replaceFIFO(listUpdated, cacheOrganization[position], i);
+                cacheOrganization[position][wordPosition] = data;
+            } else {
+                misses++;
+                cacheOrganization[position][wordPosition] = data;
+            }
+        }
+
+        appendResult(results, hits, misses, i, 3, cacheOrganization);
+    }
+}
+
 int main(int argc, char *argv[]){
     char* filename;
     NumberLinkedList* numbers;
@@ -323,12 +441,35 @@ int main(int argc, char *argv[]){
 
     fifo(blocksInCache, numbers, results);
     lifo(blocksInCache, numbers, results);
+    lru(blocksInCache, numbers, results);
+
+    // NumberNode* node;
+    // node = numbers->first;
+
+    // while (node){
+    //     printf(" %d ", node->number);
+
+    //     node = node->next;
+    // }
+
+    // printf("\n");
+
+    // removeByElement(numbers, 45);
+    // node = numbers->first;    
+
+    // while (node){
+    //     printf(" %d ", node->number);
+
+    //     node = node->next;
+    // }
+
+    // printf("\n");
 
     Results* aux;
     aux = results->first;
 
     while(aux){
-        if (aux->policy == 2 || 1){
+        if (aux->policy == 3){
             for (int i=0; i<blocksInCache/aux->associativity; i++){
                 for (int j=0; j<aux->associativity; j++){
                     printf(" %d ", aux->finalState[i][j]);
