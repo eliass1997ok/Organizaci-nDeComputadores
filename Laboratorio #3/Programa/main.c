@@ -174,6 +174,19 @@ int searchSpace(int* memory, int large){
     return -1;
 }
 
+void reverseArray(int* array, int end){
+    int temp;
+    int start;
+    start = 0;
+    while (start < end)
+    {
+        temp = array[start];   
+        array[start] = array[end];
+        array[end] = temp;
+        start++;
+        end--;
+    }   
+}  
 
 int* listToArray(NumberLinkedList* list){
     int* numbers;
@@ -191,6 +204,10 @@ int* listToArray(NumberLinkedList* list){
     }
 
     return numbers;
+}
+
+void arrayToList(int* array, NumberLinkedList* list, int large){
+    for (int i=0; i<large; i++) appendNumberList(list, array[i]);  
 }
 
 NumberLinkedList* readFile(char* filename){
@@ -406,6 +423,61 @@ void lru(int blocks, NumberLinkedList* list, ResultsList* results){
     }
 }
 
+void mru(int blocks, NumberLinkedList* list, ResultsList* results){
+    int* numbers;
+    numbers = listToArray(list);
+
+    for (int i=1; i<=blocks; i=i*2){
+        NumberLinkedList* listUpdated;
+        int** cacheOrganization;
+        int misses, hits, groups;
+        listUpdated = createNumberList();
+        hits = 0;
+        misses = 0;
+        groups = blocks/i;
+        cacheOrganization = (int**)calloc(groups, sizeof(int*));
+
+        for(int j=0; j<groups; j++) cacheOrganization[j] = (int*)calloc(i, sizeof(int));
+
+        for (int iaux=0; iaux<groups; iaux++) for(int jaux=0; jaux<i; jaux++) cacheOrganization[iaux][jaux] = -1;
+
+        for (int counter = 0; counter < list->length; counter++){
+            int data = numbers[counter];
+            int position = data % groups;
+
+            int wordPosition;
+            wordPosition = searchSpace(cacheOrganization[position], i);
+
+            if (isIn(listUpdated, data) == -1){
+                appendNumberList(listUpdated, data);
+            } else {
+                removeByElement(listUpdated, data);
+                appendNumberList(listUpdated, data);
+            }
+
+            int* array;
+            array = listToArray(listUpdated);
+            reverseArray(array, listUpdated->length-1);
+            NumberLinkedList* reverseUpdatedList;
+            reverseUpdatedList = createNumberList();
+            arrayToList(array, reverseUpdatedList, listUpdated->length);
+
+            if (validateHit(cacheOrganization[position], data, i)){
+                hits++;
+            } else if (wordPosition == -1){
+                misses++;
+                wordPosition = replaceFIFO(reverseUpdatedList, cacheOrganization[position], i);
+                cacheOrganization[position][wordPosition] = data;
+            } else {
+                misses++;
+                cacheOrganization[position][wordPosition] = data;
+            }
+        }
+
+        appendResult(results, hits, misses, i, 4, cacheOrganization);
+    }
+}
+
 int main(int argc, char *argv[]){
     char* filename;
     NumberLinkedList* numbers;
@@ -442,34 +514,13 @@ int main(int argc, char *argv[]){
     fifo(blocksInCache, numbers, results);
     lifo(blocksInCache, numbers, results);
     lru(blocksInCache, numbers, results);
-
-    // NumberNode* node;
-    // node = numbers->first;
-
-    // while (node){
-    //     printf(" %d ", node->number);
-
-    //     node = node->next;
-    // }
-
-    // printf("\n");
-
-    // removeByElement(numbers, 45);
-    // node = numbers->first;    
-
-    // while (node){
-    //     printf(" %d ", node->number);
-
-    //     node = node->next;
-    // }
-
-    // printf("\n");
+    mru(blocksInCache, numbers, results);
 
     Results* aux;
     aux = results->first;
 
     while(aux){
-        if (aux->policy == 3){
+        if (aux->policy == 4){
             for (int i=0; i<blocksInCache/aux->associativity; i++){
                 for (int j=0; j<aux->associativity; j++){
                     printf(" %d ", aux->finalState[i][j]);
