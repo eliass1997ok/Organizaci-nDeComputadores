@@ -1,0 +1,28 @@
+
+IRQ -> Instructio request -> Petición de interrupción. Llegan al controlador de interrupciones.
+
+PIC (programmable interruption controller) O UCI (Unidad de control de interrupciones) -> Unidad que se encarga de organizar las interrupcionesponiendo algunas
+en espera u otras en ejecución o denegando otras. Se encuentra en la placa madre.
+
+Polling -> Cuando no había PIC, el procesador atendía por si mismo las interrupciones, entonces hacía polling, que consistía en preguntar sucesivamente
+si habían interrupciones o no, para así decidir que hacer (ej: while infinito).
+
+Tiempo muerto-> El procesador al funcionar a una frecuencia mayor que la memoria, se genera un tiempo muerot para que se pasen los datos de un pto a otro.
+
+APIC -> Cuando nacen los multiprocesadores, la PIC no puede suplir el trabajo, por lo que nace la APIC, la cual consta de un chip en cada procesador
+(local apic) que se encarga de interrupciones internas del sistema, y un chip que es la IOAPIC que se encarga de interrupciones que provienen de hardware externo al procesador.
+El IOAPIC recibe una interrupción, y la envía a uno/todos/algunos localApic. Cuando un localApic se hace cargo de la interrupción lanza una señal a las demás para indicar que 
+la interrupción ha sido atendida.
+
+Vector de interrupciones -> Registro en el cual se encuentran las interrupciones, entonces al ocurrir una, se pregunta en el vector de interrupciones
+el tipo de interrupción que es.
+
+Pasos de PIC para hacer frente a IRQ:
+1- Finalizar ejecución de instrucción que se está ejecutando.
+2- Guardar valor del controlador de programa o prolog counter, del programa en ejecución para retomarlo una vez se termina de atender la interrupción.
+3- Se carga y ejecutan las instrucciones propias de la rutina de interrupción.
+4- Al terminar, el procesador restaura la instrucción pendiente para continuar con ella.
+
+Enmascaramiento -> Modificar bits de interrupción para dejarla en espera, atenderla o negarla.
+
+Excepción -> Tipo de interrupción a nivel de software.
